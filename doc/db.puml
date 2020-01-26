@@ -1,0 +1,81 @@
+@startuml
+
+' hide the spot
+hide circle
+
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+package V1.0 {
+    entity Users {
+      *id : UUID
+      --
+      *name : VARCHAR(50)
+      *email : VARCHAR(50)
+      otp : VARCHAR(50)
+    }
+
+    entity Habits {
+      *id : UUID
+      --
+      *user_id : UUID
+      *name : VARCHAR(50)
+      *number_of_repetitions : NUMBER
+      *duration : DURATION_ENUM
+      *bad : BOOLEAN DEFAULT false
+      *quote : VARCHAR(500)
+      *start: TIMESTAMP DEFAULT now()
+      end: TIMESTAMP
+    }
+
+    entity Tags {
+      *id : UUID
+      --
+      *name : VARCHAR(50)
+    }
+
+    entity HabitTags {
+      *habit_id : UUID
+      *tag_id : UUID
+    }
+
+    entity Actions {
+      *id : UUID
+      --
+      *timestamp : TIMESTAMP
+      habit_id : UUID
+      tag_id : UUID
+      description : VARCHAR(500)
+    }
+}
+
+package V1.1 {
+
+    entity LongActions {
+      *id : UUID
+      --
+      *action_id : UUID
+      stop_time : TIMESTAMP
+    }
+
+    entity TagGoals {
+      *id : UUID
+      --
+      *tag_id : UUID
+      *duration : DURATION_ENUM
+      *number_of_repetition : NUMBER
+      *bad : BOOLEAN DEFAULT false
+      *start: TIMESTAMP DEFAULT now()
+      end: TIMESTAMP
+    }
+}
+
+Users --{ Habits
+Habits -right-{ HabitTags
+HabitTags }-down- Tags
+Habits --{ Actions
+Tags --{ Actions
+Actions ||--o| LongActions
+Tags }--o| TagGoals
+
+@enduml
