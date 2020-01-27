@@ -6,6 +6,10 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TrackerJackson.auto
 import com.j0rsa.bujo.tracker.TransactionManager
+import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.habitLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.multipleHabitsLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.userLens
 import com.j0rsa.bujo.tracker.model.HabitRow
 import com.j0rsa.bujo.tracker.model.HabitService
 import com.j0rsa.bujo.tracker.model.TagRow
@@ -23,10 +27,6 @@ import org.http4k.lens.uuid
 import java.util.*
 
 object HabitHandler {
-    private val habitLens = Body.auto<HabitView>().toLens()
-    private val multipleHabitsLens = Body.auto<List<HabitView>>().toLens()
-    private val habitIdLens = Path.uuid().map(::HabitId).of("id")
-    private val userLens = Header.uuid().required("X-Auth-Id")
 
     fun create() = { req: Request ->
         val habitId = TransactionManager.tx { HabitService.create(req.toHabitDto()) }
@@ -76,7 +76,3 @@ data class HabitView(
     val tagList: List<TagRow>,
     val id: UUID? = null
 )
-
-data class HabitId @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(@JsonValue val value: UUID) {
-    override fun toString(): String = this.value.toString()
-}

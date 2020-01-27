@@ -1,6 +1,7 @@
 package com.j0rsa.bujo.tracker
 
 import com.j0rsa.bujo.tracker.handler.HabitHandler
+import com.j0rsa.bujo.tracker.handler.TagHandler
 import com.j0rsa.bujo.tracker.model.*
 import org.http4k.server.Http4kServer
 import org.apache.logging.log4j.core.config.Configurator
@@ -36,11 +37,12 @@ fun startApp(): Http4kServer {
                     Method.GET to HabitHandler.findOne(),
                     Method.DELETE to HabitHandler.delete()
                 )
+            ),
+            "/tags" bind routes(
+                "/" bind Method.GET to TagHandler.findAll()
             )
         )
     )
-
-//    val app = { request: Request -> Response(Status.OK).body("Hello, ${request.query("name")}!") }
 
     logger.info("Starting server...")
     val server = app.asServer(Jetty(Config.app.port)).start()

@@ -3,6 +3,7 @@ package com.j0rsa.bujo.tracker.model
 import com.j0rsa.bujo.tracker.handler.HabitView
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import java.util.*
@@ -93,6 +94,11 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
         id.value
     )
 }
+
+fun ResultRow.toTagRow() = TagRow(
+    name = this[Tags.name],
+    id = this[Tags.id].value
+)
 
 data class TagRow(
     val name: String,

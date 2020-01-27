@@ -13,7 +13,7 @@ import java.util.*
 object HabitService {
     fun create(habitRow: HabitRow): UUID {
         val foundUser = User.findById(habitRow.userId)!!
-        val allTags = TagsRepository.createTagsIfNotExist(foundUser, habitRow.tags)
+        val allTags = TagService.createTagsIfNotExist(foundUser, habitRow.tags)
         val habit = Habit.new(UUID.randomUUID()) {
             name = habitRow.name
             user = foundUser
