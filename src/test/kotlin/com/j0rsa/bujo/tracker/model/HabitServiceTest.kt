@@ -29,6 +29,28 @@ internal class HabitServiceTest : TransactionalTest {
     }
 
     @Test
+    fun testCreateWithSeveralTagCreation() {
+        TransactionManager.tx {
+            val habitId = HabitService.create(
+                defaultHabitRow(
+                    user.id.value, tags = listOf(
+                        defaultTagRow("tag1"),
+                        defaultTagRow("tag2"),
+                        defaultTagRow("tag3")
+                    )
+                )
+            )
+
+            val habit = Habit.findById(habitId)!!
+            assertThat(habit.tags.toList()).hasSize(3)
+            assertThat(habit.tags.toList()).extracting { it.name }.containsOnly("tag1", "tag2", "tag3")
+            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.id.value }
+                .containsOnly(user.id.value)
+            currentTransaction().rollback()
+        }
+    }
+
+    @Test
     fun whenAnotherUserHasTagWithSameNameThenNoNewTagCreation() {
         TransactionManager.tx {
             val anotherUser = defaultUser("anotherUser")
