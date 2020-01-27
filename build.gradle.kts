@@ -28,6 +28,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.zaxxer:HikariCP:3.4.2")
     implementation("io.arrow-kt:arrow-fx:$arrowVersion")
     implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
     kapt("io.arrow-kt:arrow-meta:$arrowVersion")
