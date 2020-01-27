@@ -21,3 +21,9 @@ fun defaultHabitRow(userId: UUID, name: String = "testHabit", tags: List<TagRow>
     tags,
     userId
 )
+
+fun defaultHabit(habitUser: User, tagList: List<Tag>, habitName: String = "testHabit") = Habit.new {
+    name = habitName
+    user = habitUser
+    tags = SizedCollection(tagList)
+}

@@ -2,6 +2,7 @@ package com.j0rsa.bujo.tracker.model
 
 import com.j0rsa.bujo.tracker.handler.HabitView
 import org.jetbrains.exposed.dao.*
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import java.util.*
@@ -28,7 +29,7 @@ object Habits : UUIDTable("habits", "id") {
 }
 
 object HabitTags : Table("habit-tags") {
-    val habitId = reference("habitId", Habits).primaryKey(0)
+    val habitId = reference("habitId", Habits, onDelete = ReferenceOption.CASCADE).primaryKey(0)
     val tagId = reference("tagId", Tags).primaryKey(1)
 }
 
@@ -47,7 +48,8 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
         tags.map { it.toRow() },
         userId.value,
         quote,
-        bad
+        bad,
+        id.value
     )
 }
 
@@ -56,7 +58,8 @@ data class HabitRow(
     val tags: List<TagRow>,
     val userId: UUID,
     val quote: String? = null,
-    val bad: Boolean? = null
+    val bad: Boolean? = null,
+    val id: UUID? = null
 ) {
     constructor(habitView: HabitView, userId: UUID) : this(
         habitView.name,
@@ -64,6 +67,14 @@ data class HabitRow(
         userId,
         habitView.quote,
         habitView.bad
+    )
+
+    fun toView(): HabitView = HabitView(
+        name,
+        quote,
+        bad,
+        tags,
+        id
     )
 }
 
@@ -90,7 +101,7 @@ data class TagRow(
 
 object ActionTags : Table("action-tags") {
 
-    val actionId = reference("actionId", Actions).primaryKey(0)
+    val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE).primaryKey(0)
     val tagId = reference("tagId", Tags).primaryKey(1)
 }
 

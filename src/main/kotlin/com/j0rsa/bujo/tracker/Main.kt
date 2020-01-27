@@ -2,7 +2,6 @@ package com.j0rsa.bujo.tracker
 
 import com.j0rsa.bujo.tracker.handler.HabitHandler
 import com.j0rsa.bujo.tracker.model.*
-import com.j0rsa.bujo.tracker.model.Actions
 import org.http4k.server.Http4kServer
 import org.apache.logging.log4j.core.config.Configurator
 import org.http4k.core.*
@@ -12,7 +11,6 @@ import org.http4k.filter.ServerFilters.CatchLensFailure
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.http4k.server.asServer
-import org.jetbrains.exposed.sql.SchemaUtils
 
 fun main() {
     val server = startApp()
@@ -32,10 +30,17 @@ fun startApp(): Http4kServer {
         routes(
             "/health" bind Method.GET to { Response(Status.OK) },
             "/habits" bind routes(
-                Method.POST to HabitHandler.create()
+                "/" bind Method.POST to HabitHandler.create(),
+                "/" bind Method.GET to HabitHandler.findAll(),
+                "/{id}" bind routes(
+                    Method.GET to HabitHandler.findOne(),
+                    Method.DELETE to HabitHandler.delete()
+                )
             )
         )
     )
+
+//    val app = { request: Request -> Response(Status.OK).body("Hello, ${request.query("name")}!") }
 
     logger.info("Starting server...")
     val server = app.asServer(Jetty(Config.app.port)).start()

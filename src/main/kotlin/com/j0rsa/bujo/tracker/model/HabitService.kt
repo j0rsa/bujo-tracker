@@ -1,6 +1,13 @@
 package com.j0rsa.bujo.tracker.model
 
+import arrow.core.Either
+import arrow.core.extensions.fx
+import arrow.core.fix
+import com.j0rsa.bujo.tracker.NotFound
+import com.j0rsa.bujo.tracker.SyStemError
+import com.j0rsa.bujo.tracker.TrackerError
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.and
 import java.util.*
 
 object HabitService {
@@ -16,4 +23,23 @@ object HabitService {
         }
         return habit.id.value
     }
+
+    fun findOneBy(id: UUID, userId: UUID): Either<TrackerError, HabitRow> =
+        findOne(id, userId).map { it.toRow() }
+
+    private fun findOne(id: UUID, userId: UUID): Either<TrackerError, Habit> {
+        val habits = Habit.find { (Habits.user eq userId) and (Habits.id eq id) }.toList()
+        return when (habits.size) {
+            0 -> Either.Left(NotFound)
+            1 -> Either.Right(habits.first())
+            else -> Either.Left(SyStemError("Found too many records"))
+        }
+    }
+
+    fun findAll(userId: UUID): List<HabitRow> = Habit.find { Habits.user eq userId }.toList().map { it.toRow() }
+
+    fun deleteOne(id: UUID, userId: UUID) = Either.fx<TrackerError, Unit> {
+        val (habit) = findOne(id, userId)
+        habit.delete()
+    }.fix()
 }

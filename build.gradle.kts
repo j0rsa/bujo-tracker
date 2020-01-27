@@ -7,16 +7,18 @@ val http4kVersion = "3.226.0"
 val log4jVersion = "2.12.1"
 val jacksonVersion = "2.10.0"
 val jaxbVersion = "2.3.0"
+val arrowVersion = "0.10.4"
 
 plugins {
     kotlin("jvm") version "1.3.61"
+    kotlin("kapt") version "1.3.61"
     id("com.github.ben-manes.versions") version "0.26.0"
     id("com.adarshr.test-logger") version "2.0.0"
     application
 }
 
 application {
-    mainClassName = "conduit.MainKt"
+    mainClassName = "tracker.MainKt"
 }
 
 repositories {
@@ -26,6 +28,9 @@ repositories {
 }
 
 dependencies {
+    implementation("io.arrow-kt:arrow-fx:$arrowVersion")
+    implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
+    kapt("io.arrow-kt:arrow-meta:$arrowVersion")
     implementation("io.github.config4k:config4k:$config4kVersion")
     implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
     implementation("com.sun.xml.bind:jaxb-core:$jaxbVersion")
