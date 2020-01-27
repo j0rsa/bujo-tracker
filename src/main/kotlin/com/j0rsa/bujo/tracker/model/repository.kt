@@ -1,6 +1,5 @@
 package com.j0rsa.bujo.tracker.model
 
-import com.j0rsa.bujo.tracker.handler.TagView
 import org.jetbrains.exposed.sql.SizedCollection
 
 object TagsRepository {
@@ -9,9 +8,9 @@ object TagsRepository {
         if (!foundTag.users.contains(user)) foundTag.users = SizedCollection(foundTag.users + user)
     }
 
-    fun createTagsIfNotExist(user: User, tags: List<TagView>) = tags.map(createTagIfNotExist(user))
+    fun createTagsIfNotExist(user: User, tags: List<TagRow>) = tags.map(createTagIfNotExist(user))
 
-    private fun createTagIfNotExist(user: User) = { tag: TagView ->
+    fun createTagIfNotExist(user: User) = { tag: TagRow ->
         findOne(tag.name)
             ?.also(addUserToTagIfNotExist(user))
             ?: Tag.new {

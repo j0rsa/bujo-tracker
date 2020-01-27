@@ -25,15 +25,7 @@ fun startApp(): Http4kServer {
     val logger = LoggerFactory.getLogger("main")
 
     TransactionManager.tx {
-        SchemaUtils.createMissingTablesAndColumns(
-            Users,
-            Tags,
-            Habits,
-            Actions,
-            HabitTags,
-            ActionTags,
-            UserTags
-        )
+        createSchema()
     }
 
     val app = CatchLensFailure.then(

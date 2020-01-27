@@ -1,13 +1,15 @@
 package com.j0rsa.bujo.tracker.model
 
+import com.j0rsa.bujo.tracker.handler.HabitView
 import org.jetbrains.exposed.dao.*
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import java.util.*
 
 object Users : UUIDTable("users", "id") {
     val name = varchar("name", 50)
     val email = varchar("email", 50).index()
-    val otp = varchar("otp", 50)
+    val otp = varchar("otp", 50).nullable()
 }
 
 class User(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -20,9 +22,9 @@ class User(id: EntityID<UUID>) : UUIDEntity(id) {
 
 object Habits : UUIDTable("habits", "id") {
     val name = varchar("name", 50)
-    val quote = varchar("quote", 500).nullable()
     val user = reference("user", Users)
-    val bad = bool("bad").default(false)
+    val quote = varchar("quote", 500).nullable()
+    val bad = bool("bad").default(false).nullable()
 }
 
 object HabitTags : Table("habit-tags") {
@@ -34,10 +36,35 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<Habit>(Habits)
 
     var name by Habits.name
-    var quote by Habits.quote
-    var tags by Tag via HabitTags
     var user by User referencedOn Habits.user
+    var userId by Habits.user
+    var tags by Tag via HabitTags
+    var quote by Habits.quote
     var bad by Habits.bad
+
+    fun toRow(): HabitRow = HabitRow(
+        name,
+        tags.map { it.toRow() },
+        userId.value,
+        quote,
+        bad
+    )
+}
+
+data class HabitRow(
+    val name: String,
+    val tags: List<TagRow>,
+    val userId: UUID,
+    val quote: String? = null,
+    val bad: Boolean? = null
+) {
+    constructor(habitView: HabitView, userId: UUID) : this(
+        habitView.name,
+        habitView.tagList,
+        userId,
+        habitView.quote,
+        habitView.bad
+    )
 }
 
 object Tags : UUIDTable("tags", "id") {
@@ -49,8 +76,17 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
 
     var name by Tags.name
     var users by User via UserTags
+
+    fun toRow(): TagRow = TagRow(
+        name,
+        id.value
+    )
 }
 
+data class TagRow(
+    val name: String,
+    val id: UUID? = null
+)
 
 object ActionTags : Table("action-tags") {
 
@@ -76,4 +112,28 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
 object UserTags : Table("user-tags") {
     val userId = reference("userId", Users).primaryKey(0)
     val tagId = reference("tagId", Tags).primaryKey(1)
+}
+
+fun createSchema() {
+    SchemaUtils.create(
+        Users,
+        Tags,
+        Habits,
+        Actions,
+        HabitTags,
+        ActionTags,
+        UserTags
+    )
+}
+
+fun dropSchema() {
+    SchemaUtils.drop(
+        Users,
+        Tags,
+        Habits,
+        Actions,
+        HabitTags,
+        ActionTags,
+        UserTags
+    )
 }

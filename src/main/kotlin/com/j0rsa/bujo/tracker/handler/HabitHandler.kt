@@ -2,7 +2,9 @@ package com.j0rsa.bujo.tracker.handler
 
 import com.j0rsa.bujo.tracker.TrackerJackson.auto
 import com.j0rsa.bujo.tracker.TransactionManager
+import com.j0rsa.bujo.tracker.model.HabitRow
 import com.j0rsa.bujo.tracker.model.HabitService
+import com.j0rsa.bujo.tracker.model.TagRow
 import org.http4k.core.Body
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -20,34 +22,13 @@ object HabitHandler {
         Response(CREATED).body(habitId.toString())
     }
 
-    private fun Request.toHabitDto() = HabitDto(habitLens(this), userLens(this))
+    private fun Request.toHabitDto() = HabitRow(habitLens(this), userLens(this))
 }
 
 data class HabitView(
     val name: String,
     val quote: String?,
     val bad: Boolean,
-    val tagList: List<TagView>,
+    val tagList: List<TagRow>,
     val id: UUID? = null
 )
-
-data class TagView(
-    val name: String,
-    val id: UUID? = null
-)
-
-data class HabitDto(
-    val name: String,
-    val quote: String?,
-    val bad: Boolean,
-    val tags: List<TagView>,
-    val userId: UUID
-) {
-    constructor(habitView: HabitView, userId: UUID) : this(
-        habitView.name,
-        habitView.quote,
-        habitView.bad,
-        habitView.tagList,
-        userId
-    )
-}

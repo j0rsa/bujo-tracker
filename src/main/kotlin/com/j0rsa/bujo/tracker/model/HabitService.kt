@@ -1,21 +1,19 @@
 package com.j0rsa.bujo.tracker.model
 
-import com.j0rsa.bujo.tracker.handler.HabitDto
 import org.jetbrains.exposed.sql.SizedCollection
 import java.util.*
 
 object HabitService {
-    fun create(habitDto: HabitDto): () -> UUID = {
-        val foundUser = User.findById(habitDto.userId)!!
-        val allTags = TagsRepository.createTagsIfNotExist(foundUser, habitDto.tags)
-        Habit.new(UUID.randomUUID()) {
-            name = habitDto.name
-            quote = habitDto.quote
-            bad = habitDto.bad
-            tags = SizedCollection(allTags)
+    fun create(habitRow: HabitRow): UUID {
+        val foundUser = User.findById(habitRow.userId)!!
+        val allTags = TagsRepository.createTagsIfNotExist(foundUser, habitRow.tags)
+        val habit = Habit.new(UUID.randomUUID()) {
+            name = habitRow.name
             user = foundUser
-        }.id.value
+            tags = SizedCollection(allTags)
+            quote = habitRow.quote
+            bad = habitRow.bad
+        }
+        return habit.id.value
     }
-
-
 }

@@ -47,6 +47,7 @@ dependencies {
 
     testImplementation("io.mockk:mockk:1.9.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.20")
 }
 
 val test by tasks.getting(Test::class) {
