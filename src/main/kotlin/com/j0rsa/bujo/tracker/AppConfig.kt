@@ -18,12 +18,6 @@ data class DbConfig(
 )
 
 object Config {
-    val app: AppConfig
-
-    init {
-        val configText = this::class.java.getResource("/app.config").readText()
-        val config = ConfigFactory.parseString(configText)
-        app = config.extract("app")
-    }
+    val app: AppConfig = ConfigFactory.load().extract("app")
 }
 
