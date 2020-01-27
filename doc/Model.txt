@@ -1,0 +1,74 @@
+User
+    id
+    name
+    email
+    otp
+    
+Habit
+    id
+    user_id
+    name
+    number_of_repetitions (1,2,3...)
+    duration (day, week, month, year)
+    bad (lower then expected repetitions)
+    quote (motivation one)
+    start(=now)
+    end?
+
+Tags (Category/Place/whatever)
+    id
+    name
+    
+HabitTag
+    habit_id
+    tag_id
+    
+===== EITHER ==========
+HabitAction (commit habit at some point)
+    id
+    habit_id
+    timestamp
+    description
+    
+TagAction
+    id
+    tag_id (if random action was performed, but not a habit, like sickness - definitely not habit)
+    timestamp
+    description
+    
+SELECT id, tag_id, timestamp, description FROM Actions WHERE tag_id=
+SELECT id, habit_id, timestamp, description FROM Actions WHERE habit_id=
+====== OR =======
+Action
+    id
+    timestamp
+    description
+    
+HabitAction
+    habit_id
+    action_id
+
+TagAction
+    tag_id (if random action was performed, but not a habit, like sickness - definitely not habit)
+    action_id
+====== END ======
+    
+-- Side entity --
+LongAction
+    action_id (habit/tag action id)
+    stop_time? (How much time passed)
+
+-- Side entity --    
+TagGoal (achieve specific tag during specific time. Parallel action)
+    id
+    tag_id
+    duration
+    number_of_repetition
+    bad
+    start?
+    end?
+    
+For future versions:
+* reduce number of repetitions for bad habits
+* habit reminder (or not just habit)
+   
