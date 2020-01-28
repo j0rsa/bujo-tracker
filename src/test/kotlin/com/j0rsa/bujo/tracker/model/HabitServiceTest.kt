@@ -164,7 +164,4 @@ internal class HabitServiceTest : TransactionalTest {
         }
     }
 
-    private fun <T> isNotFound(result: Either<TrackerError, T>) =
-        (result as Either.Left).a == NotFound
-
 }

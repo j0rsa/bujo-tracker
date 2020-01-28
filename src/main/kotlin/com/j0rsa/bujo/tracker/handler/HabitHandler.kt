@@ -9,6 +9,7 @@ import com.j0rsa.bujo.tracker.TransactionManager
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.multipleHabitsLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.response
 import com.j0rsa.bujo.tracker.handler.RequestLens.userLens
 import com.j0rsa.bujo.tracker.model.HabitRow
 import com.j0rsa.bujo.tracker.model.HabitService
@@ -48,11 +49,6 @@ object HabitHandler {
             HabitService.findOneBy(habitIdLens(req).value, userLens(req))
         }
         responseFrom(habitResult)
-    }
-
-    private fun response(result: Either.Left<TrackerError>): Response = when (result.a) {
-        TrackerError.NotFound -> Response(NOT_FOUND)
-        is TrackerError.SyStemError -> Response(INTERNAL_SERVER_ERROR)
     }
 
     fun findAll() = { req: Request ->

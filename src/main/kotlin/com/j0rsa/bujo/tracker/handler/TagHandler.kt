@@ -1,6 +1,9 @@
 package com.j0rsa.bujo.tracker.handler
 
+import arrow.core.Either
 import com.j0rsa.bujo.tracker.TransactionManager
+import com.j0rsa.bujo.tracker.handler.RequestLens.response
+import com.j0rsa.bujo.tracker.handler.RequestLens.tagLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.tagsLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.userLens
 import com.j0rsa.bujo.tracker.model.TagService
@@ -14,5 +17,15 @@ object TagHandler {
             TagService.findAll(userLens(req))
         }
         tagsLens(tags, Response(Status.OK))
+    }
+
+    fun update() = { req: Request ->
+        val newTag = TransactionManager.tx {
+            TagService.update(userLens(req), tagLens(req))
+        }
+        when (newTag) {
+            is Either.Left -> response(newTag)
+            is Either.Right -> tagLens(newTag.b, Response(Status.OK))
+        }
     }
 }

@@ -9,7 +9,7 @@ fun defaultUser(userEmail: String = "testEmail") = User.new {
     email = userEmail
 }
 
-fun defaultTagRow(name: String = "testTag") = TagRow(name)
+fun defaultTagRow(name: String = "testTag", id: UUID? = null) = TagRow(name, id)
 
 fun defaultTag(tagUsers: List<User>, tagName: String = "testTag") = Tag.new {
     name = tagName
@@ -31,5 +31,11 @@ fun defaultHabitRow(
 fun defaultHabit(habitUser: User, tagList: List<Tag>, habitName: String = "testHabit") = Habit.new {
     name = habitName
     user = habitUser
+    tags = SizedCollection(tagList)
+}
+
+fun defaultAction(actionUser: User, tagList: List<Tag>, actionName: String = "testHabit") = Action.new {
+    name = actionName
+    user = actionUser
     tags = SizedCollection(tagList)
 }

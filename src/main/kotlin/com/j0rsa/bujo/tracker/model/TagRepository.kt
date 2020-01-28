@@ -22,4 +22,9 @@ object TagRepository {
         .slice(Tags.columns)
         .select { (UserTags.userId eq userId) and (Tags.name eq tagName) })
         .singleOrNull()
+
+    fun findOneByIdForUser(id: UUID, userId: UUID) = Tag.wrapRows((UserTags leftJoin Tags)
+        .slice(Tags.columns)
+        .select { (UserTags.userId eq userId) and (Tags.id eq id) })
+        .singleOrNull()
 }

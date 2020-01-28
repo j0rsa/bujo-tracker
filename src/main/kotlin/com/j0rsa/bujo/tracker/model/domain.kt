@@ -31,7 +31,7 @@ object Habits : UUIDTable("habits", "id") {
 
 object HabitTags : Table("habit-tags") {
     val habitId = reference("habitId", Habits, onDelete = ReferenceOption.CASCADE).primaryKey(0)
-    val tagId = reference("tagId", Tags).primaryKey(1)
+    val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
 }
 
 class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -101,9 +101,8 @@ data class TagRow(
 )
 
 object ActionTags : Table("action-tags") {
-
     val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE).primaryKey(0)
-    val tagId = reference("tagId", Tags).primaryKey(1)
+    val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
 }
 
 object Actions : UUIDTable("actions", "id") {
@@ -116,14 +115,14 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<Action>(Actions)
 
     var name by Actions.name
-    var tags by Tag via ActionTags
     var user by User referencedOn Actions.user
-    var habit by User optionalReferencedOn Actions.habit
+    var tags by Tag via ActionTags
+    var habit by Habit optionalReferencedOn Actions.habit
 }
 
 object UserTags : Table("user-tags") {
     val userId = reference("userId", Users).primaryKey(0)
-    val tagId = reference("tagId", Tags).primaryKey(1)
+    val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
 }
 
 fun createSchema() {

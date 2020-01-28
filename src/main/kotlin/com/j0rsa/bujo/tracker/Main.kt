@@ -40,11 +40,11 @@ fun startApp(): Http4kServer {
                 )
             ),
             "/tags" bind routes(
-                "/" bind Method.GET to TagHandler.findAll()
-//                "/{id}" bind routes(
-//                    Method.POST to TagHandler.update()
+                "/" bind Method.GET to TagHandler.findAll(),
+                "/{id}" bind routes(
+                    Method.POST to TagHandler.update()
 //                    Method.DELETE to
-//                )
+                )
             )
         )
     )
