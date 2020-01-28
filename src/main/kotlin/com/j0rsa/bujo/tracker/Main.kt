@@ -35,6 +35,7 @@ fun startApp(): Http4kServer {
                 "/" bind Method.GET to HabitHandler.findAll(),
                 "/{id}" bind routes(
                     Method.GET to HabitHandler.findOne(),
+                    Method.POST to HabitHandler.update(),
                     Method.DELETE to HabitHandler.delete()
                 )
             ),

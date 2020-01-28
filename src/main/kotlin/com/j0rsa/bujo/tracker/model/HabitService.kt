@@ -24,6 +24,20 @@ object HabitService {
         return habit.id.value
     }
 
+    fun update(habitRow: HabitRow): Either<TrackerError, HabitRow> =
+        findOne(habitRow.id!!, habitRow.userId).map { update(habitRow, it).toRow() }
+
+    private fun update(habitRow: HabitRow, habit: Habit): Habit {
+        val allTags = TagService.createTagsIfNotExist(habitRow.userId, habitRow.tags)
+        habit.apply {
+            name = habitRow.name
+            quote = habitRow.quote
+            bad = habitRow.bad
+            tags = SizedCollection(allTags)
+        }
+        return habit
+    }
+
     fun findOneBy(id: UUID, userId: UUID): Either<TrackerError, HabitRow> =
         findOne(id, userId).map { it.toRow() }
 

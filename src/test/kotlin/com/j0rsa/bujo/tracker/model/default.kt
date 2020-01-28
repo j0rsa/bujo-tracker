@@ -16,10 +16,16 @@ fun defaultTag(tagUsers: List<User>, tagName: String = "testTag") = Tag.new {
     users = SizedCollection(tagUsers)
 }
 
-fun defaultHabitRow(userId: UUID, name: String = "testHabit", tags: List<TagRow> = listOf(defaultTagRow())) = HabitRow(
+fun defaultHabitRow(
+    userId: UUID,
+    name: String = "testHabit",
+    tags: List<TagRow> = listOf(defaultTagRow()),
+    id: UUID? = null
+) = HabitRow(
     name,
     tags,
-    userId
+    userId,
+    id = id
 )
 
 fun defaultHabit(habitUser: User, tagList: List<Tag>, habitName: String = "testHabit") = Habit.new {

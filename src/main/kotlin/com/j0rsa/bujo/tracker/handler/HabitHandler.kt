@@ -47,10 +47,7 @@ object HabitHandler {
         val habitResult = TransactionManager.tx {
             HabitService.findOneBy(habitIdLens(req).value, userLens(req))
         }
-        when (habitResult) {
-            is Either.Left -> response(habitResult)
-            is Either.Right -> habitLens(habitResult.b.toView(), Response(OK))
-        }
+        responseFrom(habitResult)
     }
 
     private fun response(result: Either.Left<TrackerError>): Response = when (result.a) {
@@ -64,6 +61,20 @@ object HabitHandler {
             HabitService.findAll(userId)
         }.map { it.toView() }
         multipleHabitsLens(habits, Response(OK))
+    }
+
+    fun update() = { req: Request ->
+        val habitResult = TransactionManager.tx {
+            HabitService.update(req.toHabitDto())
+        }
+        responseFrom(habitResult)
+    }
+
+    private fun responseFrom(habitResult: Either<TrackerError, HabitRow>): Response {
+        return when (habitResult) {
+            is Either.Left -> response(habitResult)
+            is Either.Right -> habitLens(habitResult.b.toView(), Response(OK))
+        }
     }
 
     private fun Request.toHabitDto() = HabitRow(habitLens(this), userLens(this))

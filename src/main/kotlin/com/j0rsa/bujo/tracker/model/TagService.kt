@@ -22,6 +22,8 @@ object TagService {
     }
 
     fun createTagsIfNotExist(user: User, tags: List<TagRow>) = tags.map(createTagIfNotExist(user))
+    fun createTagsIfNotExist(userId: UUID, tags: List<TagRow>) =
+        createTagsIfNotExist(User.findById(userId)!!, tags)
 
 
     private fun addUserToTagIfNotExist(user: User) = { foundTag: Tag ->
