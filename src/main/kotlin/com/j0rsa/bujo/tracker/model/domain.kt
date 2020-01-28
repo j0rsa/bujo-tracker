@@ -95,11 +95,6 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
     )
 }
 
-fun ResultRow.toTagRow() = TagRow(
-    name = this[Tags.name],
-    id = this[Tags.id].value
-)
-
 data class TagRow(
     val name: String,
     val id: UUID? = null

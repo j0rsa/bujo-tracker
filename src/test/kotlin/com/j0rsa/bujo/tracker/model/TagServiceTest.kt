@@ -6,6 +6,7 @@ import assertk.assertThat
 import assertk.assertions.*
 import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
+import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.userId
 
 internal class TagServiceTest : TransactionalTest {
 
@@ -16,7 +17,7 @@ internal class TagServiceTest : TransactionalTest {
             assertThat(newTag.id.value).isNotNull()
             assertThat(newTag.name).isEqualTo("testTag")
             assertThat(newTag.users.toList()).hasSize(1)
-            assertThat(newTag.users).extracting { it.id.value }.containsOnly(user.id.value)
+            assertThat(newTag.users).extracting { it.id.value }.containsOnly(userId)
             currentTransaction().rollback()
         }
     }
@@ -31,7 +32,7 @@ internal class TagServiceTest : TransactionalTest {
             assertThat(tagWithSameName.name).isEqualTo("testTag")
             assertThat(tagWithSameName.users.toList()).hasSize(2)
             assertThat(tagWithSameName.users).extracting { it.id.value }
-                .containsOnly(user.id.value, anotherUser.id.value)
+                .containsOnly(userId, anotherUser.id.value)
             currentTransaction().rollback()
         }
     }
@@ -44,7 +45,7 @@ internal class TagServiceTest : TransactionalTest {
             assertThat(tagWithSameName.id.value).isEqualTo(tag.id.value)
             assertThat(tagWithSameName.name).isEqualTo("testTag")
             assertThat(tagWithSameName.users.toList()).hasSize(1)
-            assertThat(tagWithSameName.users).extracting { it.id.value }.containsOnly(user.id.value)
+            assertThat(tagWithSameName.users).extracting { it.id.value }.containsOnly(userId)
             currentTransaction().rollback()
         }
     }
@@ -58,7 +59,7 @@ internal class TagServiceTest : TransactionalTest {
                 defaultTag(listOf(user), "tag3")
             )
 
-            val foundTags = TagService.findAll(user.id.value)
+            val foundTags = TagService.findAll(userId)
             assertThat(foundTags).extracting { it.name }.containsOnly(*tags.map { it.name }.toTypedArray())
             assertThat(foundTags).extracting { it.id }.containsOnly(*tags.map { it.id.value }.toTypedArray())
             currentTransaction().rollback()
