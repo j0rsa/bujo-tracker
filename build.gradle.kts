@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 
@@ -16,13 +17,13 @@ plugins {
     id("com.adarshr.test-logger") version "2.0.0"
     id("com.gorylenko.gradle-git-properties") version "1.4.17"
     id("com.avast.gradle.docker-compose") version "0.9.4"
-    id("com.palantir.docker") version "0.22.0"
-    application
+    id("com.palantir.docker") version "0.24.0"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
-application {
-    mainClassName = "tracker.MainKt"
-}
+group = "com.j0rsa.bujo"
+version = "0.0.1"
+java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()
@@ -59,6 +60,21 @@ dependencies {
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.20")
 }
 
+tasks {
+    named<ShadowJar>("shadowJar") {
+        mergeServiceFiles()
+        manifest {
+            attributes(mapOf("Main-Class" to "com.j0rsa.bujo.tracker.MainKt"))
+        }
+    }
+}
+
+tasks {
+    build {
+        dependsOn(shadowJar)
+    }
+}
+
 val test by tasks.getting(Test::class) {
     useJUnitPlatform { }
 }
@@ -71,15 +87,15 @@ compileTestKotlin.kotlinOptions.jvmTarget = "1.8"
 
 val hash = Runtime.getRuntime().exec("git rev-parse --short HEAD").inputStream.reader().use { it.readText() }.trim()
 val projectTag = hash
-val jarName = "${project.name}-$version.jar"
 val baseDockerName = "j0rsa/${project.name}"
 val taggedDockerName = "$baseDockerName:$projectTag"
 
 val baseDockerFile = file("$projectDir/Dockerfile")
 docker {
+    val shadowJar: ShadowJar by tasks
     name = taggedDockerName
-    buildArgs(mapOf("JAR_NAME" to jarName))
     setDockerfile(baseDockerFile)
-    val jar: Jar by tasks
-    files(jar.outputs)
+    tag("latest")
+    buildArgs(mapOf("JAR_NAME" to shadowJar.archiveFileName.get()))
+    files(shadowJar.outputs, ".dockerignore")
 }

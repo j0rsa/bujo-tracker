@@ -1,4 +1,5 @@
 FROM openjdk:8-jdk-alpine
 LABEL maintainer="keyridan@gmail.com"
-ADD ${JAR_FILE} app.jar
-CMD ["java","-jar","/app.jar"]
+ARG JAR_FILE
+COPY ${JAR_FILE} /app.jar
+CMD ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
