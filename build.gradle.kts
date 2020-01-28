@@ -14,6 +14,9 @@ plugins {
     kotlin("kapt") version "1.3.61"
     id("com.github.ben-manes.versions") version "0.26.0"
     id("com.adarshr.test-logger") version "2.0.0"
+    id("com.gorylenko.gradle-git-properties") version "1.4.17"
+    id("com.avast.gradle.docker-compose") version "0.9.4"
+    id("com.palantir.docker") version "0.22.0"
     application
 }
 
@@ -65,3 +68,18 @@ compileKotlin.kotlinOptions.jvmTarget = "1.8"
 
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions.jvmTarget = "1.8"
+
+val hash = Runtime.getRuntime().exec("git rev-parse --short HEAD").inputStream.reader().use { it.readText() }.trim()
+val projectTag = hash
+val jarName = "${project.name}-$version.jar"
+val baseDockerName = "j0rsa/${project.name}"
+val taggedDockerName = "$baseDockerName:$projectTag"
+
+val baseDockerFile = file("$projectDir/Dockerfile")
+docker {
+    name = taggedDockerName
+    buildArgs(mapOf("JAR_NAME" to jarName))
+    setDockerfile(baseDockerFile)
+    val jar: Jar by tasks
+    files(jar.outputs)
+}
