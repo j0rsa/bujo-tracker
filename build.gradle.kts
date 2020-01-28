@@ -95,7 +95,6 @@ docker {
     val shadowJar: ShadowJar by tasks
     name = taggedDockerName
     setDockerfile(baseDockerFile)
-    tag("latest")
-    buildArgs(mapOf("JAR_NAME" to shadowJar.archiveFileName.get()))
-    files(shadowJar.outputs, ".dockerignore")
+    buildArgs(mapOf("JAR_FILE" to shadowJar.archiveFileName.get()))
+    files(shadowJar.outputs)
 }
