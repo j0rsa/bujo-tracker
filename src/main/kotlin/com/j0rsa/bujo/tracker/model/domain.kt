@@ -1,11 +1,13 @@
 package com.j0rsa.bujo.tracker.model
 
+import com.j0rsa.bujo.tracker.handler.ActionView
 import com.j0rsa.bujo.tracker.handler.HabitView
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import java.util.*
+import kotlin.reflect.KProperty
 
 object Users : UUIDTable("users", "id") {
     val name = varchar("name", 50)
@@ -121,10 +123,86 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
 
     var name by Actions.name
     var user by User referencedOn Actions.user
+    var userId by Actions.user
     var tags by Tag via ActionTags
     var habit by Habit optionalReferencedOn Actions.habit
+    var habitId by Actions.habit
 
-    fun idValue() = id.value
+    fun toActionRow(): ActionRow = ActionRow(
+        toBaseActionRow(),
+        tags.map { it.toRow() },
+        habitIdValue()
+    )
+
+    private fun toBaseActionRow(): BaseActionRow = BaseActionRow(
+        name,
+        userIdValue(),
+        idValue()
+    )
+
+    fun idValue() = ActionId(id.value)
+    fun userIdValue() = UserId(userId.value)
+    fun habitIdValue() = habitId?.let { HabitId(it.value) }
+}
+
+abstract class WithBaseActionRow(baseRow: BaseActionRow) {
+    val userId: UserId by baseRow
+    val name: String by baseRow
+    val id: ActionId? by baseRow
+}
+
+data class TagActionRow(
+    val baseRow: BaseActionRow,
+    val tags: List<TagRow>
+) : WithBaseActionRow(baseRow) {
+    constructor(view: ActionView, userId: UserId) : this(
+        BaseActionRow(view, userId),
+        view.tagList
+    )
+}
+
+data class BaseActionRow(
+    val name: String,
+    val userId: UserId,
+    val id: ActionId? = null
+) {
+    constructor(view: ActionView, userId: UserId) : this(
+        view.name,
+        userId,
+        view.id
+    )
+
+    inline operator fun <reified T> getValue(withBaseActionRow: WithBaseActionRow, property: KProperty<*>): T {
+        return when (property.name) {
+            WithBaseActionRow::name::name.get() -> this.name
+            WithBaseActionRow::userId::name.get() -> this.userId
+            WithBaseActionRow::id::name.get() -> this.id
+            else -> throw RuntimeException()
+        } as T
+    }
+}
+
+data class ActionRow(
+    val baseRow: BaseActionRow,
+    val tags: List<TagRow>,
+    val habitId: HabitId? = null
+) : WithBaseActionRow(baseRow) {
+    fun toView(): ActionView = ActionView(
+        name,
+        tags,
+        habitId,
+        id
+    )
+}
+
+data class HabitActionRow(
+    val baseRow: BaseActionRow,
+    val habitId: HabitId? = null
+) : WithBaseActionRow(baseRow) {
+    constructor(view: ActionView, userId: UserId, habitId: HabitId) : this(
+        BaseActionRow(view, userId),
+        habitId
+    )
 }
 
 object UserTags : Table("user-tags") {

@@ -19,4 +19,7 @@ object ActionRepository {
 
         return Action.wrapRows(query).toList()
     }
+
+    fun findAll(userId: UserId) = Action.find { Actions.user eq userId.value }.toList()
+    fun findById(actionId: ActionId) = Action.findById(actionId.value)
 }

@@ -3,6 +3,7 @@ package com.j0rsa.bujo.tracker.handler
 import arrow.core.Either
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TrackerJackson.auto
+import com.j0rsa.bujo.tracker.model.ActionId
 import com.j0rsa.bujo.tracker.model.HabitId
 import com.j0rsa.bujo.tracker.model.TagRow
 import com.j0rsa.bujo.tracker.model.UserId
@@ -20,6 +21,9 @@ object RequestLens {
     val userLens = Header.uuid().map(::UserId).required("X-Auth-Id")
     val tagLens = Body.auto<TagRow>().toLens()
     val tagsLens = Body.auto<List<TagRow>>().toLens()
+    val actionLens = Body.auto<ActionView>().toLens()
+    val multipleActionLens = Body.auto<List<ActionView>>().toLens()
+    val actionIdLens = Path.uuid().map(::ActionId).of("id")
 
     fun response(result: Either.Left<TrackerError>): Response = when (result.a) {
         TrackerError.NotFound -> Response(Status.NOT_FOUND)

@@ -26,6 +26,26 @@ fun defaultHabitRow(
     id = id
 )
 
+fun defaultHabitActionRow(
+    userId: UserId,
+    habitId: HabitId,
+    name: String = "testHabitAction",
+    id: ActionId? = null
+) = HabitActionRow(
+    BaseActionRow(name, userId, id),
+    habitId
+)
+
+fun defaultTagActionRow(
+    userId: UserId,
+    name: String = "testTagAction",
+    tags: List<TagRow> = listOf(defaultTagRow()),
+    id: ActionId? = null
+) = TagActionRow(
+    BaseActionRow(name, userId, id),
+    tags
+)
+
 fun defaultHabit(habitUser: User, tagList: List<Tag>, habitName: String = "testHabit") = Habit.new {
     name = habitName
     user = habitUser

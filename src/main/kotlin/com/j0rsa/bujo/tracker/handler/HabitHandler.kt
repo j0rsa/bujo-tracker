@@ -44,9 +44,8 @@ object HabitHandler {
     }
 
     fun findAll() = { req: Request ->
-        val userId = userLens(req)
         val habits = TransactionManager.tx {
-            HabitService.findAll(userId)
+            HabitService.findAll(userLens(req))
         }.map { it.toView() }
         multipleHabitsLens(habits, Response(OK))
     }
@@ -58,11 +57,9 @@ object HabitHandler {
         responseFrom(habitResult)
     }
 
-    private fun responseFrom(habitResult: Either<TrackerError, HabitRow>): Response {
-        return when (habitResult) {
-            is Either.Left -> response(habitResult)
-            is Either.Right -> habitLens(habitResult.b.toView(), Response(OK))
-        }
+    private fun responseFrom(habitResult: Either<TrackerError, HabitRow>): Response = when (habitResult) {
+        is Either.Left -> response(habitResult)
+        is Either.Right -> habitLens(habitResult.b.toView(), Response(OK))
     }
 
     private fun Request.toHabitDto() = HabitRow(habitLens(this), userLens(this))

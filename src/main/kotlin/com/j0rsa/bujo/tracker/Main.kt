@@ -1,5 +1,6 @@
 package com.j0rsa.bujo.tracker
 
+import com.j0rsa.bujo.tracker.handler.ActionHandler
 import com.j0rsa.bujo.tracker.handler.HabitHandler
 import com.j0rsa.bujo.tracker.handler.TagHandler
 import com.j0rsa.bujo.tracker.model.*
@@ -43,8 +44,12 @@ fun startApp(): Http4kServer {
                 "/" bind Method.GET to TagHandler.findAll(),
                 "/{id}" bind routes(
                     Method.POST to TagHandler.update()
-//                    Method.DELETE to
                 )
+            ),
+            "/actions" bind routes(
+                "/" bind Method.POST to ActionHandler.createWithTags(),
+                "/" bind Method.GET to ActionHandler.findAll(),
+                "/habit/{id}" bind Method.POST to ActionHandler.createWithHabit()
             )
         )
     )
