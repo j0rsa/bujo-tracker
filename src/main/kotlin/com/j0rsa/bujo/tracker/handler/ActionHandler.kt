@@ -72,7 +72,7 @@ object ActionHandler {
 }
 
 data class ActionView(
-    val name: String,
+    val description: String,
     val tagList: List<TagRow>,
     val habitId: HabitId? = null,
     val id: ActionId? = null

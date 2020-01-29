@@ -19,7 +19,7 @@ object ActionService {
         return when (foundHabits.size) {
             0 -> Left(NotFound)
             1 -> Right(Action.new(ActionId.randomValue().value) {
-                name = row.name
+                description = row.description
                 user = foundUser
                 tags = SizedCollection(allTags)
                 habit = foundHabits.first()
@@ -32,7 +32,7 @@ object ActionService {
         val foundUser = UserRepository.findOne(row.userId)!!
         val allTags = TagService.createTagsIfNotExist(foundUser, row.tags)
         return Action.new(ActionId.randomValue().value) {
-            name = row.name
+            description = row.description
             user = foundUser
             tags = SizedCollection(allTags)
         }.idValue()
@@ -58,7 +58,7 @@ object ActionService {
     private fun updateAction(row: BaseActionRow): (Action) -> ActionRow = { action: Action ->
         val allTags = TagService.createTagsIfNotExist(row.userId, row.tags)
         action.apply {
-            name = row.name
+            description = row.description
             tags = SizedCollection(allTags)
         }
         action.toRow()

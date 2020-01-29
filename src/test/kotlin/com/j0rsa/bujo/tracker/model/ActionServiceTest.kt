@@ -119,7 +119,7 @@ internal class ActionServiceTest : TransactionalTest {
             assertThat(result.isRight())
 
             val foundHabit = ActionRepository.findById(action.idValue())!!
-            assertThat(foundHabit.name).isEqualTo("newName")
+            assertThat(foundHabit.description).isEqualTo("newName")
             assertThat(foundHabit.tags.toList()).hasSize(2)
             assertThat(foundHabit.tags.toList().map { it.name }).containsOnly(*tags.map { it.name }.toTypedArray())
         }

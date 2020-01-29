@@ -142,7 +142,7 @@ object ActionTags : Table("action-tags") {
 }
 
 object Actions : UUIDTable("actions", "id") {
-    val name = varchar("name", 50)
+    val description = varchar("description", 50)
     val user = reference("user", Users)
     val habit = optReference("habit", Habits, onDelete = ReferenceOption.CASCADE)
     val created = datetime("created").clientDefault { DateTime.now() }.nullable()
@@ -151,7 +151,7 @@ object Actions : UUIDTable("actions", "id") {
 class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<Action>(Actions)
 
-    var name by Actions.name
+    var description by Actions.description
     var user by User referencedOn Actions.user
     var userId by Actions.user
     var tags by Tag via ActionTags
@@ -164,7 +164,7 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     )
 
     private fun toBaseActionRow(): BaseActionRow = BaseActionRow(
-        name,
+        description,
         userIdValue(),
         tags.map { it.toRow() },
         idValue()
@@ -177,19 +177,19 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
 
 abstract class WithBaseActionRow(baseRow: BaseActionRow) {
     val userId: UserId by baseRow
-    val name: String by baseRow
+    val description: String by baseRow
     val tags: List<TagRow> by baseRow
     val id: ActionId? by baseRow
 }
 
 data class BaseActionRow(
-    val name: String,
+    val description: String,
     val userId: UserId,
     val tags: List<TagRow>,
     val id: ActionId? = null
 ) {
     constructor(view: ActionView, userId: UserId) : this(
-        view.name,
+        view.description,
         userId,
         view.tagList,
         view.id
@@ -197,7 +197,7 @@ data class BaseActionRow(
 
     inline operator fun <reified T> getValue(withBaseActionRow: WithBaseActionRow, property: KProperty<*>): T {
         return when (property.name) {
-            WithBaseActionRow::name::name.get() -> this.name
+            WithBaseActionRow::description::name.get() -> this.description
             WithBaseActionRow::userId::name.get() -> this.userId
             WithBaseActionRow::tags::name.get() -> this.tags
             WithBaseActionRow::id::name.get() -> this.id
@@ -216,7 +216,7 @@ data class ActionRow(
     )
 
     fun toView(): ActionView = ActionView(
-        name,
+        description,
         tags,
         habitId,
         id

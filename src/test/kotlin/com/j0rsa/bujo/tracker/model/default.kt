@@ -61,7 +61,7 @@ fun defaultAction(
     actionName: String = "testAction",
     actionHabit: Habit? = null
 ) = Action.new {
-    name = actionName
+    description = actionName
     user = actionUser
     habit = actionHabit
     tags = SizedCollection(tagList)
