@@ -49,6 +49,11 @@ fun startApp(): Http4kServer {
             "/actions" bind routes(
                 "/" bind Method.POST to ActionHandler.createWithTags(),
                 "/" bind Method.GET to ActionHandler.findAll(),
+                "/{id}" bind routes(
+                    Method.GET to ActionHandler.findOne(),
+                    Method.POST to ActionHandler.update(),
+                    Method.DELETE to ActionHandler.delete()
+                ),
                 "/habit/{id}" bind Method.POST to ActionHandler.createWithHabit()
             )
         )

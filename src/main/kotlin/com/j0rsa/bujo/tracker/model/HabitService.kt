@@ -23,9 +23,9 @@ object HabitService {
     }
 
     fun update(habitRow: HabitRow): Either<TrackerError, HabitRow> =
-        findOne(habitRow.id!!, habitRow.userId).map { update(habitRow, it).toRow() }
+        findOne(habitRow.id!!, habitRow.userId).map(updateHabit(habitRow))
 
-    private fun update(habitRow: HabitRow, habit: Habit): Habit {
+    private fun updateHabit(habitRow: HabitRow) = { habit: Habit ->
         val allTags = TagService.createTagsIfNotExist(habitRow.userId, habitRow.tags)
         habit.apply {
             name = habitRow.name
@@ -33,7 +33,7 @@ object HabitService {
             bad = habitRow.bad
             tags = SizedCollection(allTags)
         }
-        return habit
+        habit.toRow()
     }
 
     fun findOneBy(id: HabitId, userId: UserId): Either<TrackerError, HabitRow> =

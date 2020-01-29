@@ -21,5 +21,9 @@ object ActionRepository {
     }
 
     fun findAll(userId: UserId) = Action.find { Actions.user eq userId.value }.toList()
+
     fun findById(actionId: ActionId) = Action.findById(actionId.value)
+
+    fun findOneBy(actionId: ActionId, userId: UserId) =
+        Action.find { (Actions.id eq actionId.value) and (Actions.user eq userId.value) }.toList()
 }

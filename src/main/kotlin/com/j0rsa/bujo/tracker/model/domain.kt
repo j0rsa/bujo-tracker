@@ -115,7 +115,7 @@ object ActionTags : Table("action-tags") {
 object Actions : UUIDTable("actions", "id") {
     val name = varchar("name", 50)
     val user = reference("user", Users)
-    val habit = reference("habit", Habits).nullable()
+    val habit = reference("habit", Habits, onDelete = ReferenceOption.CASCADE).nullable()
 }
 
 class Action(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -128,15 +128,15 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     var habit by Habit optionalReferencedOn Actions.habit
     var habitId by Actions.habit
 
-    fun toActionRow(): ActionRow = ActionRow(
+    fun toRow(): ActionRow = ActionRow(
         toBaseActionRow(),
-        tags.map { it.toRow() },
         habitIdValue()
     )
 
     private fun toBaseActionRow(): BaseActionRow = BaseActionRow(
         name,
         userIdValue(),
+        tags.map { it.toRow() },
         idValue()
     )
 
@@ -148,27 +148,20 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
 abstract class WithBaseActionRow(baseRow: BaseActionRow) {
     val userId: UserId by baseRow
     val name: String by baseRow
+    val tags: List<TagRow> by baseRow
     val id: ActionId? by baseRow
-}
-
-data class TagActionRow(
-    val baseRow: BaseActionRow,
-    val tags: List<TagRow>
-) : WithBaseActionRow(baseRow) {
-    constructor(view: ActionView, userId: UserId) : this(
-        BaseActionRow(view, userId),
-        view.tagList
-    )
 }
 
 data class BaseActionRow(
     val name: String,
     val userId: UserId,
+    val tags: List<TagRow>,
     val id: ActionId? = null
 ) {
     constructor(view: ActionView, userId: UserId) : this(
         view.name,
         userId,
+        view.tagList,
         view.id
     )
 
@@ -176,6 +169,7 @@ data class BaseActionRow(
         return when (property.name) {
             WithBaseActionRow::name::name.get() -> this.name
             WithBaseActionRow::userId::name.get() -> this.userId
+            WithBaseActionRow::tags::name.get() -> this.tags
             WithBaseActionRow::id::name.get() -> this.id
             else -> throw RuntimeException()
         } as T
@@ -184,24 +178,18 @@ data class BaseActionRow(
 
 data class ActionRow(
     val baseRow: BaseActionRow,
-    val tags: List<TagRow>,
-    val habitId: HabitId? = null
-) : WithBaseActionRow(baseRow) {
-    fun toView(): ActionView = ActionView(
-        name,
-        tags,
-        habitId,
-        id
-    )
-}
-
-data class HabitActionRow(
-    val baseRow: BaseActionRow,
     val habitId: HabitId? = null
 ) : WithBaseActionRow(baseRow) {
     constructor(view: ActionView, userId: UserId, habitId: HabitId) : this(
         BaseActionRow(view, userId),
         habitId
+    )
+
+    fun toView(): ActionView = ActionView(
+        name,
+        tags,
+        habitId,
+        id
     )
 }
 
