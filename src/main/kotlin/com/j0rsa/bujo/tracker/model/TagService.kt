@@ -6,15 +6,14 @@ import arrow.core.Left
 import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.TrackerError
 import org.jetbrains.exposed.sql.*
-import java.util.*
 
 object TagService {
 
-    fun findAll(userId: UUID) = TagRepository.findAll(userId)
+    fun findAll(userId: UserId) = TagRepository.findAll(userId)
         .map { it.toRow() }
 
     fun createTagIfNotExist(user: User) = { tag: TagRow ->
-        TagRepository.findOneForUser(tag.name, user.id.value) ?: (TagRepository.findOne(tag.name)
+        TagRepository.findOneForUser(tag.name, user.idValue()) ?: (TagRepository.findOne(tag.name)
             ?.also(addUserToTag(user))
             ?: Tag.new {
                 name = tag.name
@@ -22,9 +21,9 @@ object TagService {
             })
     }
 
-    fun update(userId: UUID, tag: TagRow): Either<TrackerError, TagRow> =
+    fun update(userId: UserId, tag: TagRow): Either<TrackerError, TagRow> =
         TagRepository.findOneByIdForUser(tag.id!!, userId)?.let { oldTag ->
-            val user = User.findById(userId)!!
+            val user = UserRepository.findOne(userId)!!
             val newTag = createTagIfNotExist(user)(tag)
             updateHabitTags(oldTag, newTag)
             updateActionTags(oldTag, newTag)
@@ -43,7 +42,8 @@ object TagService {
     }
 
     fun createTagsIfNotExist(user: User, tags: List<TagRow>) = tags.map(createTagIfNotExist(user))
-    fun createTagsIfNotExist(userId: UUID, tags: List<TagRow>) = createTagsIfNotExist(User.findById(userId)!!, tags)
+    fun createTagsIfNotExist(userId: UserId, tags: List<TagRow>) =
+        createTagsIfNotExist(UserRepository.findOne(userId)!!, tags)
 
     private fun addUserToTag(user: User) = { foundTag: Tag ->
         foundTag.users = SizedCollection(foundTag.users + user)

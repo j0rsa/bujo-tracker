@@ -98,3 +98,6 @@ docker {
     buildArgs(mapOf("JAR_FILE" to shadowJar.archiveFileName.get()))
     files(shadowJar.outputs)
 }
+compileKotlin.kotlinOptions {
+    freeCompilerArgs = listOf("-Xinline-classes")
+}

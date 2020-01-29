@@ -1,30 +1,22 @@
 package com.j0rsa.bujo.tracker.handler
 
 import arrow.core.Either
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonValue
 import com.j0rsa.bujo.tracker.TrackerError
-import com.j0rsa.bujo.tracker.TrackerJackson.auto
 import com.j0rsa.bujo.tracker.TransactionManager
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.multipleHabitsLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.response
 import com.j0rsa.bujo.tracker.handler.RequestLens.userLens
+import com.j0rsa.bujo.tracker.model.HabitId
 import com.j0rsa.bujo.tracker.model.HabitRow
 import com.j0rsa.bujo.tracker.model.HabitService
 import com.j0rsa.bujo.tracker.model.TagRow
-import org.http4k.core.Body
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status.Companion.CREATED
-import org.http4k.core.Status.Companion.INTERNAL_SERVER_ERROR
-import org.http4k.core.Status.Companion.NOT_FOUND
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
-import org.http4k.lens.Header
-import org.http4k.lens.Path
-import org.http4k.lens.uuid
 import java.util.*
 
 object HabitHandler {
@@ -36,7 +28,7 @@ object HabitHandler {
 
     fun delete(): (Request) -> Response = { req: Request ->
         val result = TransactionManager.tx {
-            HabitService.deleteOne(habitIdLens(req).value, userLens(req))
+            HabitService.deleteOne(habitIdLens(req), userLens(req))
         }
         when (result) {
             is Either.Left -> response(result)
@@ -46,7 +38,7 @@ object HabitHandler {
 
     fun findOne() = { req: Request ->
         val habitResult = TransactionManager.tx {
-            HabitService.findOneBy(habitIdLens(req).value, userLens(req))
+            HabitService.findOneBy(habitIdLens(req), userLens(req))
         }
         responseFrom(habitResult)
     }
@@ -81,5 +73,5 @@ data class HabitView(
     val quote: String?,
     val bad: Boolean?,
     val tagList: List<TagRow>,
-    val id: UUID? = null
+    val id: HabitId? = null
 )

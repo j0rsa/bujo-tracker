@@ -18,4 +18,11 @@ object HabitRepository {
 
         return Habit.wrapRows(query).toList()
     }
+
+    fun findOne(userId: UserId, id: HabitId) =
+        Habit.find { (Habits.user eq userId.value) and (Habits.id eq id.value) }.toList()
+
+    fun findById(id: HabitId) = Habit.findById(id.value)
+
+    fun findAll(userId: UserId) = Habit.find { Habits.user eq userId.value }.toList()
 }

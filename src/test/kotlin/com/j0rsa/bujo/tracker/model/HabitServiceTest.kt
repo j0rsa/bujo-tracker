@@ -1,17 +1,12 @@
 package com.j0rsa.bujo.tracker.model
 
-import arrow.core.Either
 import assertk.assertThat
 import assertk.assertions.*
-import com.j0rsa.bujo.tracker.NotFound
-import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TransactionManager
 import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.userId
 import org.junit.jupiter.api.Test
-
-import java.util.*
 
 internal class HabitServiceTest : TransactionalTest {
 
@@ -20,12 +15,12 @@ internal class HabitServiceTest : TransactionalTest {
         TransactionManager.tx {
             val habitId = HabitService.create(defaultHabitRow(userId))
 
-            val habit = Habit.findById(habitId)
+            val habit = HabitRepository.findById(habitId)
             assertThat(habit).isNotNull()
             assertThat(habit!!.name).isEqualTo("testHabit")
-            assertThat(habit.userId.value).isEqualTo(userId)
+            assertThat(habit.userIdValue()).isEqualTo(userId)
             assertThat(habit.tags.toList()).extracting { it.name }.containsOnly("testTag")
-            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.id.value }
+            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.idValue() }
                 .containsOnly(userId)
             currentTransaction().rollback()
         }
@@ -44,10 +39,10 @@ internal class HabitServiceTest : TransactionalTest {
                 )
             )
 
-            val habit = Habit.findById(habitId)!!
+            val habit = HabitRepository.findById(habitId)!!
             assertThat(habit.tags.toList()).hasSize(3)
             assertThat(habit.tags.toList()).extracting { it.name }.containsOnly("tag1", "tag2", "tag3")
-            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.id.value }
+            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.idValue() }
                 .containsOnly(userId)
             currentTransaction().rollback()
         }
@@ -60,12 +55,12 @@ internal class HabitServiceTest : TransactionalTest {
             val tagWithSameName = defaultTag(listOf(anotherUser))
             val habitId = HabitService.create(defaultHabitRow(userId))
 
-            val habit = Habit.findById(habitId)!!
+            val habit = HabitRepository.findById(habitId)!!
             assertThat(habit.tags.toList()).hasSize(1)
             assertThat(habit.tags.toList()).extracting { it.id.value }.containsOnly(tagWithSameName.id.value)
             assertThat(habit.tags.toList()).extracting { it.name }.containsOnly("testTag")
-            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.id.value }
-                .containsOnly(userId, anotherUser.id.value)
+            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.idValue() }
+                .containsOnly(userId, anotherUser.idValue())
             currentTransaction().rollback()
         }
     }
@@ -76,11 +71,11 @@ internal class HabitServiceTest : TransactionalTest {
             val tagWithSameName = defaultTag(listOf(user))
             val habitId = HabitService.create(defaultHabitRow(userId))
 
-            val habit = Habit.findById(habitId)!!
+            val habit = HabitRepository.findById(habitId)!!
             assertThat(habit.tags.toList()).hasSize(1)
             assertThat(habit.tags.toList()).extracting { it.id.value }.containsOnly(tagWithSameName.id.value)
             assertThat(habit.tags.toList()).extracting { it.name }.containsOnly("testTag")
-            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.id.value }
+            assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.idValue() }
                 .containsOnly(userId)
             currentTransaction().rollback()
         }
@@ -92,7 +87,7 @@ internal class HabitServiceTest : TransactionalTest {
             val tag = defaultTag(listOf(user))
             val habit = defaultHabit(user, listOf(tag))
 
-            val result = HabitService.findOneBy(habit.id.value, userId)
+            val result = HabitService.findOneBy(habit.idValue(), userId)
             assertThat(result.isRight())
             currentTransaction().rollback()
         }
@@ -101,7 +96,7 @@ internal class HabitServiceTest : TransactionalTest {
     @Test
     fun findOneWhenHabitNotExist() {
         TransactionManager.tx {
-            val result = HabitService.findOneBy(UUID.randomUUID(), userId)
+            val result = HabitService.findOneBy(HabitId.randomValue(), userId)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))
             currentTransaction().rollback()
@@ -114,7 +109,7 @@ internal class HabitServiceTest : TransactionalTest {
             val tag = defaultTag(listOf(user))
             val habit = defaultHabit(user, listOf(tag))
 
-            val result = HabitService.deleteOne(habit.id.value, userId)
+            val result = HabitService.deleteOne(habit.idValue(), userId)
             assertThat(result.isRight())
 
             val habitAfterDeletion = Habit.findById(habit.id.value)
@@ -126,7 +121,7 @@ internal class HabitServiceTest : TransactionalTest {
     @Test
     fun deleteWhenHabitNotExist() {
         TransactionManager.tx {
-            val result = HabitService.deleteOne(UUID.randomUUID(), userId)
+            val result = HabitService.deleteOne(HabitId.randomValue(), userId)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))
             currentTransaction().rollback()
@@ -140,7 +135,7 @@ internal class HabitServiceTest : TransactionalTest {
             val habit = defaultHabit(user, listOf(tag))
 
             val tags = listOf(defaultTagRow(), defaultTagRow("anotherTag"))
-            val habitToUpdate = defaultHabitRow(userId, "newName", tags, habit.id.value)
+            val habitToUpdate = defaultHabitRow(userId, "newName", tags, habit.idValue())
 
             val result = HabitService.update(habitToUpdate)
             assertThat(result.isRight())
@@ -156,7 +151,7 @@ internal class HabitServiceTest : TransactionalTest {
     @Test
     fun testUpdateHabitWhenHabitNotExist() {
         TransactionManager.tx {
-            val notExistingHabit = defaultHabitRow(userId, id = UUID.randomUUID())
+            val notExistingHabit = defaultHabitRow(userId, id = HabitId.randomValue())
             val result = HabitService.update(notExistingHabit)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))

@@ -7,21 +7,19 @@ import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.SyStemError
 import com.j0rsa.bujo.tracker.TrackerError
 import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.and
-import java.util.*
 
 object HabitService {
-    fun create(habitRow: HabitRow): UUID {
-        val foundUser = User.findById(habitRow.userId)!!
+    fun create(habitRow: HabitRow): HabitId {
+        val foundUser = UserRepository.findOne(habitRow.userId)!!
         val allTags = TagService.createTagsIfNotExist(foundUser, habitRow.tags)
-        val habit = Habit.new(UUID.randomUUID()) {
+        val habit = Habit.new(HabitId.randomValue().value) {
             name = habitRow.name
             user = foundUser
             tags = SizedCollection(allTags)
             quote = habitRow.quote
             bad = habitRow.bad
         }
-        return habit.id.value
+        return habit.idValue()
     }
 
     fun update(habitRow: HabitRow): Either<TrackerError, HabitRow> =
@@ -38,11 +36,11 @@ object HabitService {
         return habit
     }
 
-    fun findOneBy(id: UUID, userId: UUID): Either<TrackerError, HabitRow> =
+    fun findOneBy(id: HabitId, userId: UserId): Either<TrackerError, HabitRow> =
         findOne(id, userId).map { it.toRow() }
 
-    private fun findOne(id: UUID, userId: UUID): Either<TrackerError, Habit> {
-        val habits = Habit.find { (Habits.user eq userId) and (Habits.id eq id) }.toList()
+    private fun findOne(id: HabitId, userId: UserId): Either<TrackerError, Habit> {
+        val habits = HabitRepository.findOne(userId, id)
         return when (habits.size) {
             0 -> Either.Left(NotFound)
             1 -> Either.Right(habits.first())
@@ -50,9 +48,9 @@ object HabitService {
         }
     }
 
-    fun findAll(userId: UUID): List<HabitRow> = Habit.find { Habits.user eq userId }.toList().map { it.toRow() }
+    fun findAll(userId: UserId): List<HabitRow> = HabitRepository.findAll(userId).map { it.toRow() }
 
-    fun deleteOne(id: UUID, userId: UUID) = Either.fx<TrackerError, Unit> {
+    fun deleteOne(id: HabitId, userId: UserId) = Either.fx<TrackerError, Unit> {
         val (habit) = findOne(id, userId)
         habit.delete()
     }.fix()

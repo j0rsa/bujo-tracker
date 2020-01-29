@@ -18,7 +18,7 @@ internal class TagServiceTest : TransactionalTest {
             assertThat(newTag.id.value).isNotNull()
             assertThat(newTag.name).isEqualTo("testTag")
             assertThat(newTag.users.toList()).hasSize(1)
-            assertThat(newTag.users).extracting { it.id.value }.containsOnly(userId)
+            assertThat(newTag.users).extracting { it.idValue() }.containsOnly(userId)
             currentTransaction().rollback()
         }
     }
@@ -32,8 +32,8 @@ internal class TagServiceTest : TransactionalTest {
             assertThat(tagWithSameName.id.value).isEqualTo(tag.id.value)
             assertThat(tagWithSameName.name).isEqualTo("testTag")
             assertThat(tagWithSameName.users.toList()).hasSize(2)
-            assertThat(tagWithSameName.users).extracting { it.id.value }
-                .containsOnly(userId, anotherUser.id.value)
+            assertThat(tagWithSameName.users).extracting { it.idValue() }
+                .containsOnly(userId, anotherUser.idValue())
             currentTransaction().rollback()
         }
     }
@@ -46,7 +46,7 @@ internal class TagServiceTest : TransactionalTest {
             assertThat(tagWithSameName.id.value).isEqualTo(tag.id.value)
             assertThat(tagWithSameName.name).isEqualTo("testTag")
             assertThat(tagWithSameName.users.toList()).hasSize(1)
-            assertThat(tagWithSameName.users).extracting { it.id.value }.containsOnly(userId)
+            assertThat(tagWithSameName.users).extracting { it.idValue() }.containsOnly(userId)
             currentTransaction().rollback()
         }
     }

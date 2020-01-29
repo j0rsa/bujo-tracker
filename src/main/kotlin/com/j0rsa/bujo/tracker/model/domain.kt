@@ -3,7 +3,6 @@ package com.j0rsa.bujo.tracker.model
 import com.j0rsa.bujo.tracker.handler.HabitView
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import java.util.*
@@ -20,6 +19,7 @@ class User(id: EntityID<UUID>) : UUIDEntity(id) {
     var name by Users.name
     var email by Users.email
     var otp by Users.otp
+    fun idValue() = UserId(id.value)
 }
 
 object Habits : UUIDTable("habits", "id") {
@@ -47,22 +47,25 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
     fun toRow(): HabitRow = HabitRow(
         name,
         tags.map { it.toRow() },
-        userId.value,
+        userIdValue(),
         quote,
         bad,
-        id.value
+        HabitId(id.value)
     )
+
+    fun idValue() = HabitId(id.value)
+    fun userIdValue() = UserId(userId.value)
 }
 
 data class HabitRow(
     val name: String,
     val tags: List<TagRow>,
-    val userId: UUID,
+    val userId: UserId,
     val quote: String? = null,
     val bad: Boolean? = null,
-    val id: UUID? = null
+    val id: HabitId? = null
 ) {
-    constructor(habitView: HabitView, userId: UUID) : this(
+    constructor(habitView: HabitView, userId: UserId) : this(
         habitView.name,
         habitView.tagList,
         userId,
@@ -147,4 +150,16 @@ fun dropSchema() {
         ActionTags,
         UserTags
     )
+}
+
+inline class HabitId(val value: UUID) {
+    companion object {
+        fun randomValue() = HabitId(UUID.randomUUID())
+    }
+}
+
+inline class UserId(val value: UUID) {
+    companion object {
+        fun randomValue() = UserId(UUID.randomUUID())
+    }
 }

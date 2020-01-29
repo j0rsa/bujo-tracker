@@ -3,7 +3,6 @@ package com.j0rsa.bujo.tracker.model
 import org.jetbrains.exposed.sql.SizedCollection
 import java.util.*
 
-
 fun defaultUser(userEmail: String = "testEmail") = User.new {
     name = "testUser"
     email = userEmail
@@ -17,10 +16,10 @@ fun defaultTag(tagUsers: List<User>, tagName: String = "testTag") = Tag.new {
 }
 
 fun defaultHabitRow(
-    userId: UUID,
+    userId: UserId,
     name: String = "testHabit",
     tags: List<TagRow> = listOf(defaultTagRow()),
-    id: UUID? = null
+    id: HabitId? = null
 ) = HabitRow(
     name,
     tags,
