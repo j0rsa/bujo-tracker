@@ -1,14 +1,13 @@
 package com.j0rsa.bujo.tracker.model
 
 import org.jetbrains.exposed.sql.SizedCollection
-import java.util.*
 
 fun defaultUser(userEmail: String = "testEmail") = User.new {
     name = "testUser"
     email = userEmail
 }
 
-fun defaultTagRow(name: String = "testTag", id: UUID? = null) = TagRow(name, id)
+fun defaultTagRow(name: String = "testTag", id: TagId? = null) = TagRow(name, id)
 
 fun defaultTag(tagUsers: List<User>, tagName: String = "testTag") = Tag.new {
     name = tagName

@@ -57,7 +57,7 @@ internal class HabitServiceTest : TransactionalTest {
 
             val habit = HabitRepository.findById(habitId)!!
             assertThat(habit.tags.toList()).hasSize(1)
-            assertThat(habit.tags.toList()).extracting { it.id.value }.containsOnly(tagWithSameName.id.value)
+            assertThat(habit.tags.toList()).extracting { it.idValue() }.containsOnly(tagWithSameName.idValue())
             assertThat(habit.tags.toList()).extracting { it.name }.containsOnly("testTag")
             assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.idValue() }
                 .containsOnly(userId, anotherUser.idValue())
@@ -73,7 +73,7 @@ internal class HabitServiceTest : TransactionalTest {
 
             val habit = HabitRepository.findById(habitId)!!
             assertThat(habit.tags.toList()).hasSize(1)
-            assertThat(habit.tags.toList()).extracting { it.id.value }.containsOnly(tagWithSameName.id.value)
+            assertThat(habit.tags.toList()).extracting { it.idValue() }.containsOnly(tagWithSameName.idValue())
             assertThat(habit.tags.toList()).extracting { it.name }.containsOnly("testTag")
             assertThat(habit.tags.toList().flatMap { it.users.toList() }).extracting { it.idValue() }
                 .containsOnly(userId)
@@ -112,7 +112,7 @@ internal class HabitServiceTest : TransactionalTest {
             val result = HabitService.deleteOne(habit.idValue(), userId)
             assertThat(result.isRight())
 
-            val habitAfterDeletion = Habit.findById(habit.id.value)
+            val habitAfterDeletion = HabitRepository.findById(habit.idValue())
             assertThat(habitAfterDeletion).isNull()
             currentTransaction().rollback()
         }
@@ -140,7 +140,7 @@ internal class HabitServiceTest : TransactionalTest {
             val result = HabitService.update(habitToUpdate)
             assertThat(result.isRight())
 
-            val foundHabit = Habit.findById(habit.id.value)!!
+            val foundHabit = HabitRepository.findById(habit.idValue())!!
             assertThat(foundHabit.name).isEqualTo("newName")
             assertThat(foundHabit.tags.toList()).hasSize(2)
             assertThat(foundHabit.tags.toList().map { it.name }).containsOnly(*tags.map { it.name }.toTypedArray())

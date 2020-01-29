@@ -50,7 +50,7 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
         userIdValue(),
         quote,
         bad,
-        HabitId(id.value)
+        idValue()
     )
 
     fun idValue() = HabitId(id.value)
@@ -94,13 +94,15 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
 
     fun toRow(): TagRow = TagRow(
         name,
-        id.value
+        idValue()
     )
+
+    fun idValue() = TagId(id.value)
 }
 
 data class TagRow(
     val name: String,
-    val id: UUID? = null
+    val id: TagId? = null
 )
 
 object ActionTags : Table("action-tags") {
@@ -121,6 +123,8 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     var user by User referencedOn Actions.user
     var tags by Tag via ActionTags
     var habit by Habit optionalReferencedOn Actions.habit
+
+    fun idValue() = id.value
 }
 
 object UserTags : Table("user-tags") {
@@ -161,5 +165,17 @@ inline class HabitId(val value: UUID) {
 inline class UserId(val value: UUID) {
     companion object {
         fun randomValue() = UserId(UUID.randomUUID())
+    }
+}
+
+inline class TagId(val value: UUID) {
+    companion object {
+        fun randomValue() = TagId(UUID.randomUUID())
+    }
+}
+
+inline class ActionId(val value: UUID) {
+    companion object {
+        fun randomValue() = ActionId(UUID.randomUUID())
     }
 }

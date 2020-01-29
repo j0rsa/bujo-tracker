@@ -16,7 +16,7 @@ internal class ActionRepositoryTest : TransactionalTest {
             val anotherTag = defaultTag(listOf(user), "tag2")
             defaultAction(user, listOf(oneTag, anotherTag))
 
-            val result = ActionRepository.findAllWithOneTagWithoutAnother(oneTag.id.value, anotherTag.id.value)
+            val result = ActionRepository.findAllWithOneTagWithoutAnother(oneTag.idValue(), anotherTag.idValue())
             assertThat(result).isEmpty()
             TransactionManager.currentTransaction().rollback()
         }
@@ -31,9 +31,9 @@ internal class ActionRepositoryTest : TransactionalTest {
             defaultAction(user, listOf(anotherTag))
             val actionWithOnlyOneTag = defaultAction(user, listOf(oneTag))
 
-            val result = ActionRepository.findAllWithOneTagWithoutAnother(oneTag.id.value, anotherTag.id.value)
+            val result = ActionRepository.findAllWithOneTagWithoutAnother(oneTag.idValue(), anotherTag.idValue())
             assertThat(result).hasSize(1)
-            assertThat(result.first().id).isEqualTo(actionWithOnlyOneTag.id)
+            assertThat(result.first().idValue()).isEqualTo(actionWithOnlyOneTag.idValue())
             TransactionManager.currentTransaction().rollback()
         }
     }

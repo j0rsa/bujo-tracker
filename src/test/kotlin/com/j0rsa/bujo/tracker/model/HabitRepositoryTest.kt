@@ -18,7 +18,7 @@ internal class HabitRepositoryTest : TransactionalTest {
             val anotherTag = defaultTag(listOf(user), "tag2")
             defaultHabit(user, listOf(oneTag, anotherTag))
 
-            val result = HabitRepository.findAllWithOneTagWithoutAnother(oneTag.id.value, anotherTag.id.value)
+            val result = HabitRepository.findAllWithOneTagWithoutAnother(oneTag.idValue(), anotherTag.idValue())
             assertThat(result).isEmpty()
             currentTransaction().rollback()
         }
@@ -33,9 +33,9 @@ internal class HabitRepositoryTest : TransactionalTest {
             defaultHabit(user, listOf(anotherTag))
             val habitWithOnlyOneTag = defaultHabit(user, listOf(oneTag))
 
-            val result = HabitRepository.findAllWithOneTagWithoutAnother(oneTag.id.value, anotherTag.id.value)
+            val result = HabitRepository.findAllWithOneTagWithoutAnother(oneTag.idValue(), anotherTag.idValue())
             assertThat(result).hasSize(1)
-            assertThat(result.first().id).isEqualTo(habitWithOnlyOneTag.id)
+            assertThat(result.first().idValue()).isEqualTo(habitWithOnlyOneTag.idValue())
             currentTransaction().rollback()
         }
     }

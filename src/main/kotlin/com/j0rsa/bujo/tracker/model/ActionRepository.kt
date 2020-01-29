@@ -4,17 +4,16 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.exists
 import org.jetbrains.exposed.sql.notExists
 import org.jetbrains.exposed.sql.select
-import java.util.*
 
 object ActionRepository {
-    fun findAllWithOneTagWithoutAnother(oneTag: UUID, anotherTag: UUID): List<Action> {
+    fun findAllWithOneTagWithoutAnother(oneTag: TagId, anotherTag: TagId): List<Action> {
         val query = Actions
             .slice(Actions.columns)
             .select {
                 notExists(ActionTags.select {
-                    (ActionTags.tagId eq anotherTag) and (ActionTags.actionId eq Actions.id)
+                    (ActionTags.tagId eq anotherTag.value) and (ActionTags.actionId eq Actions.id)
                 }) and exists(ActionTags.select {
-                    (ActionTags.tagId eq oneTag) and (ActionTags.actionId eq Actions.id)
+                    (ActionTags.tagId eq oneTag.value) and (ActionTags.actionId eq Actions.id)
                 })
             }
 

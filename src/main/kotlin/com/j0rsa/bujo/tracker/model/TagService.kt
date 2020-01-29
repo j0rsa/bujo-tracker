@@ -32,12 +32,12 @@ object TagService {
         } ?: Left(NotFound)
 
     private fun updateHabitTags(tag: Tag, newTag: Tag) {
-        val recordsToAddNewTag = HabitRepository.findAllWithOneTagWithoutAnother(tag.id.value, newTag.id.value)
+        val recordsToAddNewTag = HabitRepository.findAllWithOneTagWithoutAnother(tag.idValue(), newTag.idValue())
         recordsToAddNewTag.map { it.tags = SizedCollection(it.tags + newTag) }
     }
 
     private fun updateActionTags(tag: Tag, newTag: Tag) {
-        val recordsToAddNewTag = ActionRepository.findAllWithOneTagWithoutAnother(tag.id.value, newTag.id.value)
+        val recordsToAddNewTag = ActionRepository.findAllWithOneTagWithoutAnother(tag.idValue(), newTag.idValue())
         recordsToAddNewTag.map { it.tags = SizedCollection(it.tags + newTag) }
     }
 
