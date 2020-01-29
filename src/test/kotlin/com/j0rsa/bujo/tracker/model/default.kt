@@ -54,11 +54,11 @@ fun defaultHabit(habitUser: User, tagList: List<Tag> = listOf(), habitName: Stri
 fun defaultAction(
     actionUser: User,
     tagList: List<Tag> = listOf(),
-    actionName: String = "testHabit",
+    actionName: String = "testAction",
     actionHabit: Habit? = null
 ) = Action.new {
     name = actionName
     user = actionUser
-    tags = SizedCollection(tagList)
     habit = actionHabit
+    tags = SizedCollection(tagList)
 }

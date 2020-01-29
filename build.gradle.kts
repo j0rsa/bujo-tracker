@@ -32,6 +32,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.postgresql:postgresql:42.2.9")
     implementation("com.zaxxer:HikariCP:3.4.2")
     implementation("io.arrow-kt:arrow-fx:$arrowVersion")
     implementation("io.arrow-kt:arrow-syntax:$arrowVersion")

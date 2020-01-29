@@ -3,8 +3,6 @@ package com.j0rsa.bujo.tracker.model
 import arrow.core.Either.Right
 import assertk.assertThat
 import assertk.assertions.*
-import com.j0rsa.bujo.tracker.TransactionManager
-import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.userId
 import org.junit.jupiter.api.Test
@@ -12,7 +10,7 @@ import org.junit.jupiter.api.Test
 internal class ActionServiceTest : TransactionalTest {
     @Test
     fun testCreateWithHabitWhenHabitExistThenActionWithHabitAndTagsFromView() {
-        TransactionManager.tx {
+        tempTx {
             val tag = defaultTag(listOf(user))
             val habit = defaultHabit(user, listOf(tag))
 
@@ -24,26 +22,22 @@ internal class ActionServiceTest : TransactionalTest {
             assertThat(foundAction).isNotNull()
             assertThat(foundAction!!.habit).isEqualTo(habit)
             assertThat(foundAction.tags.toList().map { it.name }).containsOnly("testTag")
-
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun testCreateWithHabitWhenHabitNotExistThenNotFound() {
-        TransactionManager.tx {
+        tempTx {
             val newAction = defaultActionRow(userId, HabitId.randomValue())
             val result = ActionService.create(newAction)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))
-
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun testCreateWithTagsWhenTagExistWithAnotherUser() {
-        TransactionManager.tx {
+        tempTx {
             val anotherUser = defaultUser("anotherUserEmail")
             val tagWithSameName = defaultTag(listOf(anotherUser))
             val actionWithTagWithExistingName = defaultBaseActionRow(userId)
@@ -58,28 +52,24 @@ internal class ActionServiceTest : TransactionalTest {
             assertThat(foundAction.tags.first().users.toList())
                 .extracting { it.idValue() }
                 .containsOnly(userId, anotherUser.idValue())
-
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun testCreateWithTagsWhenTagNotExist() {
-        TransactionManager.tx {
+        tempTx {
             val newAction = defaultBaseActionRow(userId)
             val actionId = ActionService.create(newAction)
 
             val foundAction = ActionRepository.findById(actionId)!!
             assertThat(foundAction.tags.toList()).hasSize(1)
             assertThat(foundAction.tags.first().users.toList()).extracting { it.idValue() }.containsOnly(userId)
-
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun testCreateWithTagsUserHasTagThenNoNewTagCreation() {
-        TransactionManager.tx {
+        tempTx {
             val tagWithSameName = defaultTag(listOf(user))
             val actionId = ActionService.create(defaultBaseActionRow(userId))
 
@@ -89,13 +79,12 @@ internal class ActionServiceTest : TransactionalTest {
             assertThat(action.tags.toList()).extracting { it.name }.containsOnly("testTag")
             assertThat(action.tags.toList().flatMap { it.users.toList() }).extracting { it.idValue() }
                 .containsOnly(userId)
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun deleteWhenActionExist() {
-        TransactionManager.tx {
+        tempTx {
             val tag = defaultTag(listOf(user))
             val action = defaultAction(user, listOf(tag))
 
@@ -104,23 +93,21 @@ internal class ActionServiceTest : TransactionalTest {
 
             val recordAfterDeletion = ActionRepository.findById(action.idValue())
             assertThat(recordAfterDeletion).isNull()
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun deleteWhenActionNotExist() {
-        TransactionManager.tx {
+        tempTx {
             val result = ActionService.deleteOne(ActionId.randomValue(), userId)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun testUpdateActionWhenActionExist() {
-        TransactionManager.tx {
+        tempTx {
             val tag = defaultTag(listOf(user))
             val habit = defaultHabit(user, listOf(tag))
             val action = defaultAction(user, listOf(tag), actionHabit = habit)
@@ -135,41 +122,37 @@ internal class ActionServiceTest : TransactionalTest {
             assertThat(foundHabit.name).isEqualTo("newName")
             assertThat(foundHabit.tags.toList()).hasSize(2)
             assertThat(foundHabit.tags.toList().map { it.name }).containsOnly(*tags.map { it.name }.toTypedArray())
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun testUpdateActionWhenHabitNotExist() {
-        TransactionManager.tx {
+        tempTx {
             val notExistingAction = defaultBaseActionRow(userId, id = ActionId.randomValue())
             val result = ActionService.update(notExistingAction)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))
-            currentTransaction().rollback()
         }
     }
 
 
     @Test
     fun findOneWhenActionExist() {
-        TransactionManager.tx {
+        tempTx {
             val tag = defaultTag(listOf(user))
             val action = defaultAction(user, listOf(tag))
 
             val result = ActionService.findOneBy(action.idValue(), userId)
             assertThat(result.isRight())
-            currentTransaction().rollback()
         }
     }
 
     @Test
     fun findOneWhenActionNotExist() {
-        TransactionManager.tx {
+        tempTx {
             val result = ActionService.findOneBy(ActionId.randomValue(), userId)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))
-            currentTransaction().rollback()
         }
     }
 }

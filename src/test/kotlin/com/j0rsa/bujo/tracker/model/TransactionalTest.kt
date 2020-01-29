@@ -4,6 +4,7 @@ import arrow.core.Either
 import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TransactionManager
+import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import kotlin.properties.Delegates
@@ -11,6 +12,12 @@ import kotlin.properties.Delegates
 internal interface TransactionalTest {
     fun <T> isNotFound(result: Either<TrackerError, T>) =
         (result as Either.Left).a == NotFound
+
+    fun tempTx(block: () -> Unit) =
+        TransactionManager.tx {
+            block()
+            currentTransaction().rollback()
+        }
 
     companion object {
         lateinit var user: User
@@ -20,17 +27,17 @@ internal interface TransactionalTest {
         fun beforeAll() {
             TransactionManager.tx {
                 createSchema()
-                user = defaultUser()
+                user = User.all().firstOrNull() ?: defaultUser()
                 userId = user.idValue()
             }
         }
 
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-            TransactionManager.tx {
-                dropSchema()
-            }
-        }
+//        @AfterAll
+//        @JvmStatic
+//        fun afterAll() {
+//            TransactionManager.tx {
+//                dropSchema()
+//            }
+//        }
     }
 }

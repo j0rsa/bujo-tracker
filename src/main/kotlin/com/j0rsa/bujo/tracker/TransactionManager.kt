@@ -3,6 +3,7 @@ package com.j0rsa.bujo.tracker
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Database.Companion.connect
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.TransactionManager as ExposedTransactionManager
 
@@ -24,7 +25,7 @@ object TransactionManager {
             addDataSourceProperty("statement_timeout", 60000)
         }
     private val hikariDataSource = HikariDataSource(hikariConfig)
-    private val db: Database = Database.connect(hikariDataSource)
+    private val db: Database = connect(hikariDataSource)
 
     fun currentTransaction() = ExposedTransactionManager.current()
     fun <T> tx(block: () -> T) =

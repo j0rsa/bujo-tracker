@@ -199,7 +199,7 @@ object UserTags : Table("user-tags") {
 }
 
 fun createSchema() {
-    SchemaUtils.create(
+    SchemaUtils.createMissingTablesAndColumns(
         Users,
         Tags,
         Habits,
