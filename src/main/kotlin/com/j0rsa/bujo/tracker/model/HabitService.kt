@@ -15,6 +15,8 @@ object HabitService {
         val habit = Habit.new(HabitId.randomValue().value) {
             name = habitRow.name
             user = foundUser
+            numberOfRepetitions = habitRow.numberOfRepetitions
+            duration = habitRow.duration
             tags = SizedCollection(allTags)
             quote = habitRow.quote
             bad = habitRow.bad
@@ -29,6 +31,8 @@ object HabitService {
         val allTags = TagService.createTagsIfNotExist(habitRow.userId, habitRow.tags)
         habit.apply {
             name = habitRow.name
+            numberOfRepetitions = habitRow.numberOfRepetitions
+            duration = habitRow.duration
             quote = habitRow.quote
             bad = habitRow.bad
             tags = SizedCollection(allTags)

@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
+import org.joda.time.DateTime
 import java.util.*
 import kotlin.reflect.KProperty
 
@@ -13,6 +14,7 @@ object Users : UUIDTable("users", "id") {
     val name = varchar("name", 50)
     val email = varchar("email", 50).index()
     val otp = varchar("otp", 50).nullable()
+    val created = datetime("created").clientDefault { DateTime.now() }.nullable()
 }
 
 class User(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -24,11 +26,22 @@ class User(id: EntityID<UUID>) : UUIDEntity(id) {
     fun idValue() = UserId(id.value)
 }
 
+enum class Duration {
+    Day,
+    Week,
+    Month,
+    Year
+}
+
 object Habits : UUIDTable("habits", "id") {
     val name = varchar("name", 50)
     val user = reference("user", Users)
+    val numberOfRepetitions = integer("number_of_repetitions")
+    val duration = enumeration("duration", Duration::class)
     val quote = varchar("quote", 500).nullable()
     val bad = bool("bad").default(false).nullable()
+    val startFrom = datetime("startFrom").clientDefault { DateTime.now() }.nullable()
+    val created = datetime("created").clientDefault { DateTime.now() }.nullable()
 }
 
 object HabitTags : Table("habit-tags") {
@@ -45,13 +58,19 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
     var tags by Tag via HabitTags
     var quote by Habits.quote
     var bad by Habits.bad
+    var numberOfRepetitions by Habits.numberOfRepetitions
+    var duration by Habits.duration
+    var startFrom by Habits.startFrom
 
     fun toRow(): HabitRow = HabitRow(
         name,
         tags.map { it.toRow() },
         userIdValue(),
+        numberOfRepetitions,
+        duration,
         quote,
         bad,
+        startFrom,
         idValue()
     )
 
@@ -63,23 +82,33 @@ data class HabitRow(
     val name: String,
     val tags: List<TagRow>,
     val userId: UserId,
+    val numberOfRepetitions: Int,
+    val duration: Duration,
     val quote: String? = null,
     val bad: Boolean? = null,
+    val startFrom: DateTime? = null,
     val id: HabitId? = null
 ) {
     constructor(habitView: HabitView, userId: UserId) : this(
         habitView.name,
         habitView.tagList,
         userId,
+        habitView.numberOfRepetitions,
+        habitView.duration,
         habitView.quote,
-        habitView.bad
+        habitView.bad,
+        habitView.startFrom,
+        habitView.id
     )
 
     fun toView(): HabitView = HabitView(
         name,
+        tags,
+        numberOfRepetitions,
+        duration,
         quote,
         bad,
-        tags,
+        startFrom,
         id
     )
 }
@@ -115,7 +144,8 @@ object ActionTags : Table("action-tags") {
 object Actions : UUIDTable("actions", "id") {
     val name = varchar("name", 50)
     val user = reference("user", Users)
-    val habit = reference("habit", Habits, onDelete = ReferenceOption.CASCADE).nullable()
+    val habit = optReference("habit", Habits, onDelete = ReferenceOption.CASCADE)
+    val created = datetime("created").clientDefault { DateTime.now() }.nullable()
 }
 
 class Action(id: EntityID<UUID>) : UUIDEntity(id) {

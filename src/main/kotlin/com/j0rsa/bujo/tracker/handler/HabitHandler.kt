@@ -8,16 +8,13 @@ import com.j0rsa.bujo.tracker.handler.RequestLens.habitLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.multipleHabitsLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.response
 import com.j0rsa.bujo.tracker.handler.RequestLens.userLens
-import com.j0rsa.bujo.tracker.model.HabitId
-import com.j0rsa.bujo.tracker.model.HabitRow
-import com.j0rsa.bujo.tracker.model.HabitService
-import com.j0rsa.bujo.tracker.model.TagRow
+import com.j0rsa.bujo.tracker.model.*
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status.Companion.CREATED
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
-import java.util.*
+import org.joda.time.DateTime
 
 object HabitHandler {
 
@@ -67,8 +64,11 @@ object HabitHandler {
 
 data class HabitView(
     val name: String,
+    val tagList: List<TagRow>,
+    val numberOfRepetitions: Int,
+    val duration: Duration,
     val quote: String?,
     val bad: Boolean?,
-    val tagList: List<TagRow>,
+    val startFrom: DateTime?,
     val id: HabitId? = null
 )
