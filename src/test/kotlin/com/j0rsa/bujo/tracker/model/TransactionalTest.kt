@@ -4,7 +4,6 @@ import arrow.core.Either
 import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TransactionManager
-import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import kotlin.properties.Delegates
@@ -18,6 +17,8 @@ internal interface TransactionalTest {
             block()
             currentTransaction().rollback()
         }
+
+    fun currentTransaction() = TransactionManager.currentTransaction()
 
     companion object {
         lateinit var user: User
