@@ -26,7 +26,7 @@ class User(id: EntityID<UUID>) : UUIDEntity(id) {
     fun idValue() = UserId(id.value)
 }
 
-enum class Duration {
+enum class Period {
     Day,
     Week,
     Month,
@@ -37,7 +37,7 @@ object Habits : UUIDTable("habits", "id") {
     val name = varchar("name", 50)
     val user = reference("user", Users)
     val numberOfRepetitions = integer("number_of_repetitions")
-    val duration = enumeration("duration", Duration::class)
+    val period = enumeration("period", Period::class)
     val quote = varchar("quote", 500).nullable()
     val bad = bool("bad").default(false).nullable()
     val startFrom = datetime("startFrom").clientDefault { DateTime.now() }.nullable()
@@ -59,7 +59,7 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
     var quote by Habits.quote
     var bad by Habits.bad
     var numberOfRepetitions by Habits.numberOfRepetitions
-    var duration by Habits.duration
+    var period by Habits.period
     var startFrom by Habits.startFrom
 
     fun toRow(): HabitRow = HabitRow(
@@ -67,7 +67,7 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
         tags.map { it.toRow() },
         userIdValue(),
         numberOfRepetitions,
-        duration,
+        period,
         quote,
         bad,
         startFrom,
@@ -83,7 +83,7 @@ data class HabitRow(
     val tags: List<TagRow>,
     val userId: UserId,
     val numberOfRepetitions: Int,
-    val duration: Duration,
+    val period: Period,
     val quote: String? = null,
     val bad: Boolean? = null,
     val startFrom: DateTime? = null,
@@ -94,7 +94,7 @@ data class HabitRow(
         habitView.tagList,
         userId,
         habitView.numberOfRepetitions,
-        habitView.duration,
+        habitView.period,
         habitView.quote,
         habitView.bad,
         habitView.startFrom,
@@ -105,7 +105,7 @@ data class HabitRow(
         name,
         tags,
         numberOfRepetitions,
-        duration,
+        period,
         quote,
         bad,
         startFrom,

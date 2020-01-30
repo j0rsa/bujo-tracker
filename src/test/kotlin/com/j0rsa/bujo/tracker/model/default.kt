@@ -24,7 +24,7 @@ fun defaultHabitRow(
     tags,
     userId,
     1,
-    Duration.Day,
+    Period.Day,
     id = id
 )
 
@@ -51,7 +51,7 @@ fun defaultHabit(habitUser: User, tagList: List<Tag> = listOf(), habitName: Stri
         name = habitName
         user = habitUser
         numberOfRepetitions = 1
-        duration = Duration.Day
+        period = Period.Day
         tags = SizedCollection(tagList)
     }
 

@@ -66,7 +66,7 @@ data class HabitView(
     val name: String,
     val tagList: List<TagRow>,
     val numberOfRepetitions: Int,
-    val duration: Duration,
+    val period: Period,
     val quote: String?,
     val bad: Boolean?,
     val startFrom: DateTime?,

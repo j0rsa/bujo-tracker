@@ -16,7 +16,7 @@ object HabitService {
             name = habitRow.name
             user = foundUser
             numberOfRepetitions = habitRow.numberOfRepetitions
-            duration = habitRow.duration
+            period = habitRow.period
             tags = SizedCollection(allTags)
             quote = habitRow.quote
             bad = habitRow.bad
@@ -32,7 +32,7 @@ object HabitService {
         habit.apply {
             name = habitRow.name
             numberOfRepetitions = habitRow.numberOfRepetitions
-            duration = habitRow.duration
+            period = habitRow.period
             quote = habitRow.quote
             bad = habitRow.bad
             tags = SizedCollection(allTags)

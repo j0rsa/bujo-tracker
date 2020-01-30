@@ -21,7 +21,7 @@ package V1.0 {
       *user_id : UUID
       *name : VARCHAR(50)
       *number_of_repetitions : NUMBER
-      *duration : DURATION_ENUM
+      *period : PERIOD_ENUM
       *bad : BOOLEAN DEFAULT false
       *quote : VARCHAR(500)
       *start: TIMESTAMP DEFAULT now()
@@ -62,7 +62,7 @@ package V1.1 {
       *id : UUID
       --
       *tag_id : UUID
-      *duration : DURATION_ENUM
+      *period : PERIOD_ENUM
       *number_of_repetition : NUMBER
       *bad : BOOLEAN DEFAULT false
       *start: TIMESTAMP DEFAULT now()

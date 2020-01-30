@@ -9,7 +9,7 @@ Habit
     user_id
     name
     number_of_repetitions (1,2,3...)
-    duration (day, week, month, year)
+    period (day, week, month, year)
     bad (lower then expected repetitions)
     quote (motivation one)
     start(=now)
@@ -62,7 +62,7 @@ LongAction
 TagGoal (achieve specific tag during specific time. Parallel action)
     id
     tag_id
-    duration
+    period
     number_of_repetition
     bad
     start?
