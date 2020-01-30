@@ -28,9 +28,7 @@ class User(id: EntityID<UUID>) : UUIDEntity(id) {
 
 enum class Period {
     Day,
-    Week,
-    Month,
-    Year
+    Week
 }
 
 object Habits : UUIDTable("habits", "id") {
