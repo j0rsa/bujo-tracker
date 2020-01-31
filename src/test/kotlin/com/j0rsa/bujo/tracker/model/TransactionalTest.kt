@@ -4,7 +4,6 @@ import arrow.core.Either
 import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TransactionManager
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import kotlin.properties.Delegates
 

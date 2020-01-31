@@ -3,10 +3,10 @@ package com.j0rsa.bujo.tracker.model
 import com.j0rsa.bujo.tracker.handler.ActionView
 import com.j0rsa.bujo.tracker.handler.HabitView
 import org.jetbrains.exposed.dao.*
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Function
 import org.joda.time.DateTime
+import java.math.BigDecimal
 import java.util.*
 import kotlin.reflect.KProperty
 
@@ -155,6 +155,7 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     var tags by Tag via ActionTags
     var habit by Habit optionalReferencedOn Actions.habit
     var habitId by Actions.habit
+    var created by Actions.created
 
     fun toRow(): ActionRow = ActionRow(
         toBaseActionRow(),
@@ -220,6 +221,13 @@ data class ActionRow(
         id
     )
 }
+
+data class StreakRecord(
+    val startDate: DateTime?,
+    val endDate: DateTime?,
+    val streak: BigDecimal?,
+    val m: Double?
+)
 
 object UserTags : Table("user-tags") {
     val userId = reference("userId", Users).primaryKey(0)

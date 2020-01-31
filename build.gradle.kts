@@ -46,7 +46,7 @@ dependencies {
     implementation("org.http4k:http4k-server-jetty:$http4kVersion")
     implementation("org.http4k:http4k-format-jackson:$http4kVersion")
     implementation("org.http4k:http4k-client-apache:$http4kVersion")
-    implementation("org.jetbrains.exposed:exposed:0.14.1")
+    implementation("org.jetbrains.exposed:exposed:0.17.7")
     implementation("io.jsonwebtoken:jjwt:0.9.1")
     implementation("com.h2database:h2:1.4.198")
     implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")

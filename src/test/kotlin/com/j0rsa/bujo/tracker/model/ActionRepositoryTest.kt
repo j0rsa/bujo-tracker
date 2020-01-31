@@ -1,11 +1,11 @@
 package com.j0rsa.bujo.tracker.model
 
 import assertk.assertThat
-import assertk.assertions.hasSize
-import assertk.assertions.isEmpty
-import assertk.assertions.isEqualTo
+import assertk.assertions.*
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
+import org.joda.time.DateTime
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 
 internal class ActionRepositoryTest : TransactionalTest {
     @Test
@@ -32,6 +32,85 @@ internal class ActionRepositoryTest : TransactionalTest {
             val result = ActionRepository.findAllWithOneTagWithoutAnother(oneTag.idValue(), anotherTag.idValue())
             assertThat(result).hasSize(1)
             assertThat(result.first().idValue()).isEqualTo(actionWithOnlyOneTag.idValue())
+        }
+    }
+
+    @Test
+    fun findStreakWhen1StreakFor1() {
+        tempTx {
+            val habit = defaultHabit(user)
+            insertDefaultAction(user, habit = habit)
+
+            val record = ActionRepository.findStreakForWeek(habit.idValue())
+
+            println(record.joinToString("\n"))
+            assertThat(record).hasSize(1)
+            assertThat(record.first().streak).isEqualTo(BigDecimal.ONE)
+        }
+    }
+
+    @Test
+    fun findStreakWhen1StreakFor2() {
+        tempTx {
+            val habit = defaultHabit(user)
+            insertDefaultAction(user, habit = habit)
+            insertDefaultAction(user, habit = habit)
+
+            val record = ActionRepository.findStreakForWeek(habit.idValue())
+
+            println(record.joinToString("\n"))
+            assertThat(record).hasSize(1)
+            assertThat(record.first().streak).isEqualTo(BigDecimal(2))
+        }
+    }
+
+    @Test
+    fun findStreakWhen2StreaksFor2() {
+        tempTx {
+            val habit = defaultHabit(user)
+            println(habit.idValue())
+            val endDateOfLastStreak = DateTime(2020, 1, 30, 9, 0)
+            insertDefaultAction(user, habit = habit, created = endDateOfLastStreak)
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 29, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 15, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 8, 9, 0))
+
+            val record = ActionRepository.findStreakForWeek(habit.idValue())
+
+            println(record.joinToString("\n"))
+            assertThat(record).hasSize(2)
+            assertThat(record.map { it.streak }).containsOnly(BigDecimal(2))
+            assertThat(record.first().endDate).isEqualTo(endDateOfLastStreak)
+        }
+    }
+
+    @Test
+    fun findStreakWhen3Streaks() {
+        tempTx {
+            val habit = defaultHabit(user)
+            println(habit.idValue())
+            val endDateOfLastStreak = DateTime(2020, 1, 30, 9, 0)
+            insertDefaultAction(user, habit = habit, created = endDateOfLastStreak)
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 29, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 15, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 8, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 6, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 12, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 10, 0))
+
+            val record = ActionRepository.findStreakForWeek(habit.idValue())
+
+            println(record.joinToString("\n"))
+            assertThat(record).hasSize(3)
+            assertThat(record.map { it.streak }).containsExactly(BigDecimal(2), BigDecimal(3), BigDecimal(4))
+            assertThat(record.map { it.startDate to it.endDate }).containsExactly(
+                DateTime(2020, 1, 29, 9, 0) to endDateOfLastStreak,
+                DateTime(2020, 1, 6, 9, 0) to DateTime(2020, 1, 15, 9, 0),
+                DateTime(2019, 11, 6, 9, 0) to DateTime(2019, 11, 23, 9, 0)
+            )
+            assertThat(record.first().endDate).isEqualTo(endDateOfLastStreak)
         }
     }
 }

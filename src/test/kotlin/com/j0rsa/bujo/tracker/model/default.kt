@@ -1,6 +1,8 @@
 package com.j0rsa.bujo.tracker.model
 
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.insert
+import org.joda.time.DateTime
 
 fun defaultUser(userEmail: String = "testEmail") = User.new {
     name = "testUser"
@@ -46,8 +48,11 @@ fun defaultBaseActionRow(
     id: ActionId? = null
 ) = BaseActionRow(name, userId, tags, id)
 
-fun defaultHabit(habitUser: User, tagList: List<Tag> = listOf(), habitName: String = "testHabit") =
-    Habit.new {
+fun defaultHabit(
+    habitUser: User,
+    tagList: List<Tag> = listOf(), habitName: String = "testHabit"
+) =
+    Habit.new(HabitId.randomValue().value) {
         name = habitName
         user = habitUser
         numberOfRepetitions = 1
@@ -56,13 +61,26 @@ fun defaultHabit(habitUser: User, tagList: List<Tag> = listOf(), habitName: Stri
     }
 
 fun defaultAction(
-    actionUser: User,
-    tagList: List<Tag> = listOf(),
-    actionName: String = "testAction",
-    actionHabit: Habit? = null
+    user: User,
+    tags: List<Tag> = listOf(),
+    actionDescription: String = "testAction",
+    habit: Habit? = null,
+    created: DateTime? = DateTime.now()
 ) = Action.new {
-    description = actionName
-    user = actionUser
-    habit = actionHabit
-    tags = SizedCollection(tagList)
+    this.description = actionDescription
+    this.user = user
+    this.habit = habit
+    this.tags = SizedCollection(tags)
+    this.created = created
+}
+fun insertDefaultAction(
+    user: User,
+    actionDescription: String = "testAction",
+    habit: Habit? = null,
+    created: DateTime? = DateTime.now()
+) = Actions.insert {
+    it[this.description] = actionDescription
+    it[this.user] = user.id
+    it[this.habit] = habit?.id
+    it[this.created] = created
 }

@@ -8,6 +8,9 @@ Configuration:
         Pattern: "[%-5level] %c{1.} - %m%n"
 
   Loggers:
+    logger:
+      name: org.jetbrains.exposed
+      level: debug
     Root:
       level: info
       AppenderRef:

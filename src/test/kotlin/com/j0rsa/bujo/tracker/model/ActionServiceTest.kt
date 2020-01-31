@@ -110,7 +110,7 @@ internal class ActionServiceTest : TransactionalTest {
         tempTx {
             val tag = defaultTag(listOf(user))
             val habit = defaultHabit(user, listOf(tag))
-            val action = defaultAction(user, listOf(tag), actionHabit = habit)
+            val action = defaultAction(user, listOf(tag), habit = habit)
 
             val tags = listOf(defaultTagRow(), defaultTagRow("anotherTag"))
             val actionToUpdate = defaultBaseActionRow(userId, "newName", tags, action.idValue())
