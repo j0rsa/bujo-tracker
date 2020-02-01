@@ -17,6 +17,11 @@ internal interface TransactionalTest {
             currentTransaction().rollback()
         }
 
+    fun tempTxWithoutRollback(block: () -> Unit) =
+        TransactionManager.tx {
+            block()
+        }
+
     fun currentTransaction() = TransactionManager.currentTransaction()
 
     companion object {

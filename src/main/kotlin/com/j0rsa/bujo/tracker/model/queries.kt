@@ -6,11 +6,11 @@ import java.math.BigDecimal
 import java.sql.Timestamp
 
 enum class DatePartEnum(val value: String) {
+    Days("days"),
     Week("week"),
-    Year("ISOYEAR")
 }
 
-class DatePart(private val expr: Column<DateTime?>, private val part: DatePartEnum) :
+class DatePart(private val expr: Expression<DateTime?>, private val part: DatePartEnum) :
     Expression<Double?>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         append("EXTRACT(", part.value, " FROM ", expr, ")")
@@ -35,19 +35,9 @@ class Sum(private val expr: Expression<Int>) : Expression<BigDecimal?>() {
     }
 }
 
-class RowNumber(private val expr: Expression<DateTime?>) : Expression<Int?>() {
+class RowNumber(private val expr: Expression<DateTime?>) : Expression<Double?>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         append("ROW_NUMBER() OVER (ORDER BY ", expr, ")")
-    }
-}
-
-class YearWeekMinus<T>(
-    private val expr1: Expression<DateTime?>,
-    private val expr2: Expression<T>
-) :
-    Expression<Double?>() {
-    override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        append("EXTRACT(", DatePartEnum.Year.value," FROM ", expr1, ")* 100+EXTRACT(", DatePartEnum.Week.value, " FROM ", expr1, ") - ", expr2)
     }
 }
 
@@ -67,20 +57,27 @@ class AsDate(private val expr1: Expression<DateTime?>) : Expression<DateTime?>()
     }
 }
 
-class Plus<A, B>(
+class Divide<A>(
     private val expr1: Expression<A>,
-    private val expr2: Expression<B>
+    private val expr2: Int
 ) :
     Expression<A>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        append(expr1, "+", expr2)
+        append("(", expr1, "/$expr2)")
     }
 
 }
 
-class Times<T>(private val expr1: Expression<T>, private val times: Int) :
+class Minus<T>(private val expr1: Expression<T>, private val expr2: Expression<T>) :
     Expression<T>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        append(expr1, "* $times")
+        append("(", expr1, ") - (", expr2, ")")
+    }
+}
+
+class DateTrunc(private val expr: Expression<DateTime?>, private val part: DatePartEnum) :
+    Expression<DateTime?>() {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
+        append("date_trunc('", part.value, "', ", expr, ")")
     }
 }

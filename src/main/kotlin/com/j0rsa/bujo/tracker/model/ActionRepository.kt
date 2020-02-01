@@ -1,7 +1,7 @@
 package com.j0rsa.bujo.tracker.model
 
+import com.j0rsa.bujo.tracker.model.DatePartEnum.Days
 import com.j0rsa.bujo.tracker.model.DatePartEnum.Week
-import com.j0rsa.bujo.tracker.model.DatePartEnum.Year
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
 
@@ -28,17 +28,24 @@ object ActionRepository {
         Action.find { (Actions.id eq actionId.value) and (Actions.user eq userId.value) }.toList()
 
     fun findStreakForWeek(habitId: HabitId): List<StreakRecord> {
-        val weekInGroup = yearAndWeekFromDate().alias("weekInGroup")
-        val rows = RowNumber(Actions.created.min())
+        val firstDate = Actions.created.min().alias("firstDate")
+        val firstActionDateQuery = (Actions innerJoin Habits)
+            .slice(firstDate, Habits.id)
+            .select { Habits.id eq habitId.value }
+            .groupBy(Habits.id)
+            .alias("firstActionDateQuery")
+        val weeksBetweenFirstAction = weeksBetweenCreatedAnd(firstActionDateQuery[firstDate]).alias("weekInGroup")
         val minDate = Actions.created.min().alias("minDate")
-        val weekMinusRowNumber = YearWeekMinus(Actions.created, rows).alias("weekMinusRow")
+        val weekMinusRowNumber =
+            weeksBetweenCreatedMinusRowNumber(firstActionDateQuery[firstDate]).alias("weekMinusRow")
         val maxDate = Actions.created.max().alias("maxDate")
 
         val idCounts = Actions.id.count().alias("counts")
         val groupedAlias = (Actions innerJoin Habits)
-            .slice(idCounts, weekInGroup, minDate, maxDate, weekMinusRowNumber)
+            .innerJoin(firstActionDateQuery, { Habits.id }, { firstActionDateQuery[Habits.id] })
+            .slice(idCounts, weeksBetweenFirstAction, minDate, maxDate, weekMinusRowNumber)
             .select { Habits.id eq habitId.value }
-            .groupBy(weekInGroup)
+            .groupBy(weeksBetweenFirstAction)
             .alias("groupedAlias")
 
         val streak = Sum(groupedAlias[idCounts]).alias("streak")
@@ -97,6 +104,12 @@ object ActionRepository {
             .toList()
     }
 
-    private fun yearAndWeekFromDate() =
-        Plus(Times(DatePart(Actions.created, Year), 100), DatePart(Actions.created, Week))
+    private fun weeksBetweenCreatedAnd(firstActionDate: Expression<DateTime?>) =
+        Divide(DatePart(Minus(DateTrunc(Actions.created, Week), DateTrunc(firstActionDate, Week)), Days), 7)
+
+
+    private fun weeksBetweenCreatedMinusRowNumber(firstActionDate: Expression<DateTime?>): Minus<Double?> {
+        val rows = RowNumber(Actions.created.min())
+        return Minus(weeksBetweenCreatedAnd(firstActionDate), rows)
+    }
 }
