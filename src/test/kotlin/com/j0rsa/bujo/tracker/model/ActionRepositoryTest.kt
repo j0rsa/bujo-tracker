@@ -113,6 +113,26 @@ internal class ActionRepositoryTest : TransactionalTest {
     }
 
     @Test
+    fun findStreakWhenEndOfTheYear() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val endDateOfLastStreak = DateTime(2020, 1, 8, 21, 0)
+            val startDateOfStreak = DateTime(2019, 12, 31, 10, 0)
+            insertDefaultAction(user, habit = habit, created = endDateOfLastStreak)
+            insertDefaultAction(user, habit = habit, created = startDateOfStreak)
+
+            val record = ActionRepository.findStreakForWeek(habit.idValue())
+
+            println(record.joinToString("\n"))
+            assertThat(record).hasSize(1)
+            assertThat(record.map { it.streak }).containsExactly(BigDecimal(2))
+            assertThat(record.map { it.startDate to it.endDate }).containsExactly(
+                startDateOfStreak to endDateOfLastStreak
+            )
+        }
+    }
+
+    @Test
     fun findStreakForDayWhen3Streaks() {
         tempTx {
             val habit = defaultHabit(user)

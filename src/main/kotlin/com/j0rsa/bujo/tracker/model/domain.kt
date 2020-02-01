@@ -4,7 +4,6 @@ import com.j0rsa.bujo.tracker.handler.ActionView
 import com.j0rsa.bujo.tracker.handler.HabitView
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.Function
 import org.joda.time.DateTime
 import java.math.BigDecimal
 import java.util.*

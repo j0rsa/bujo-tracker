@@ -7,7 +7,7 @@ import java.sql.Timestamp
 
 enum class DatePartEnum(val value: String) {
     Week("week"),
-    Year("year")
+    Year("ISOYEAR")
 }
 
 class DatePart(private val expr: Column<DateTime?>, private val part: DatePartEnum) :
@@ -47,7 +47,7 @@ class YearWeekMinus<T>(
 ) :
     Expression<Double?>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        append("EXTRACT(year FROM ", expr1, ")* 100+EXTRACT(week FROM ", expr1, ") - ", expr2)
+        append("EXTRACT(", DatePartEnum.Year.value," FROM ", expr1, ")* 100+EXTRACT(", DatePartEnum.Week.value, " FROM ", expr1, ") - ", expr2)
     }
 }
 
