@@ -51,6 +51,22 @@ class YearWeekMinus<T>(
     }
 }
 
+class DateMinus<T>(
+    private val expr1: Expression<DateTime?>,
+    private val expr2: Expression<T>
+) :
+    Expression<Double?>() {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
+        append("DATE($expr1) - INTERVAL '1' DAY * $expr2")
+    }
+}
+
+class AsDate(private val expr1: Expression<DateTime?>) : Expression<DateTime?>() {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
+        append("DATE(", expr1, ")")
+    }
+}
+
 class Plus<A, B>(
     private val expr1: Expression<A>,
     private val expr2: Expression<B>
@@ -59,6 +75,7 @@ class Plus<A, B>(
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         append(expr1, "+", expr2)
     }
+
 }
 
 class Times<T>(private val expr1: Expression<T>, private val times: Int) :

@@ -68,7 +68,6 @@ internal class ActionRepositoryTest : TransactionalTest {
     fun findStreakWhen2StreaksFor2() {
         tempTx {
             val habit = defaultHabit(user)
-            println(habit.idValue())
             val endDateOfLastStreak = DateTime(2020, 1, 30, 9, 0)
             insertDefaultAction(user, habit = habit, created = endDateOfLastStreak)
             insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 29, 9, 0))
@@ -88,16 +87,15 @@ internal class ActionRepositoryTest : TransactionalTest {
     fun findStreakWhen3Streaks() {
         tempTx {
             val habit = defaultHabit(user)
-            println(habit.idValue())
-            val endDateOfLastStreak = DateTime(2020, 1, 30, 9, 0)
+            val endDateOfLastStreak = DateTime(2020, 1, 30, 21, 0)
             insertDefaultAction(user, habit = habit, created = endDateOfLastStreak)
-            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 29, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 29, 10, 0))
             insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 15, 9, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 8, 9, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 6, 9, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 9, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 12, 9, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 8, 20, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 6, 15, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 13, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 12, 11, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 12, 0))
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 10, 0))
 
             val record = ActionRepository.findStreakForWeek(habit.idValue())
@@ -106,9 +104,39 @@ internal class ActionRepositoryTest : TransactionalTest {
             assertThat(record).hasSize(3)
             assertThat(record.map { it.streak }).containsExactly(BigDecimal(2), BigDecimal(3), BigDecimal(4))
             assertThat(record.map { it.startDate to it.endDate }).containsExactly(
-                DateTime(2020, 1, 29, 9, 0) to endDateOfLastStreak,
-                DateTime(2020, 1, 6, 9, 0) to DateTime(2020, 1, 15, 9, 0),
-                DateTime(2019, 11, 6, 9, 0) to DateTime(2019, 11, 23, 9, 0)
+                DateTime(2020, 1, 29, 10, 0) to endDateOfLastStreak,
+                DateTime(2020, 1, 6, 15, 0) to DateTime(2020, 1, 15, 9, 0),
+                DateTime(2019, 11, 6, 10, 0) to DateTime(2019, 11, 23, 13, 0)
+            )
+            assertThat(record.first().endDate).isEqualTo(endDateOfLastStreak)
+        }
+    }
+
+    @Test
+    fun findStreakForDayWhen3Streaks() {
+        tempTx {
+            val habit = defaultHabit(user)
+            println(habit.idValue())
+            val endDateOfLastStreak = DateTime(2020, 1, 30, 21, 0)
+            insertDefaultAction(user, habit = habit, created = endDateOfLastStreak)
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 29, 14, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 15, 8, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 14, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 13, 23, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 11, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 22, 20, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 21, 10, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 20, 12, 0))
+
+            val record = ActionRepository.findStreakForDay(habit.idValue())
+
+            println(record.joinToString("\n"))
+            assertThat(record).hasSize(3)
+            assertThat(record.map { it.streak }).containsExactly(BigDecimal(2), BigDecimal(3), BigDecimal(4))
+            assertThat(record.map { it.startDate to it.endDate }).containsExactly(
+                DateTime(2020, 1, 29, 14, 0) to endDateOfLastStreak,
+                DateTime(2020, 1, 13, 23, 0) to DateTime(2020, 1, 15, 8, 0),
+                DateTime(2019, 11, 20, 12, 0) to DateTime(2019, 11, 23, 11, 0)
             )
             assertThat(record.first().endDate).isEqualTo(endDateOfLastStreak)
         }

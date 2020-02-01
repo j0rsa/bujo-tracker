@@ -225,8 +225,7 @@ data class ActionRow(
 data class StreakRecord(
     val startDate: DateTime?,
     val endDate: DateTime?,
-    val streak: BigDecimal?,
-    val m: Double?
+    val streak: BigDecimal?
 )
 
 object UserTags : Table("user-tags") {
