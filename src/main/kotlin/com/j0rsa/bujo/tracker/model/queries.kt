@@ -47,7 +47,7 @@ class YearWeekMinus<T>(
 ) :
     Expression<Double?>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        append("EXTRACT(year FROM $expr1)* 100+EXTRACT(week FROM $expr1) - $expr2")
+        append("EXTRACT(year FROM ", expr1, ")* 100+EXTRACT(week FROM ", expr1, ") - ", expr2)
     }
 }
 
@@ -57,7 +57,7 @@ class DateMinus<T>(
 ) :
     Expression<Double?>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        append("DATE($expr1) - INTERVAL '1' DAY * $expr2")
+        append("DATE(", expr1, ") - INTERVAL '1' DAY * ", expr2)
     }
 }
 

@@ -31,7 +31,7 @@ object ActionRepository {
         val weekInGroup = yearAndWeekFromDate().alias("weekInGroup")
         val rows = RowNumber(Actions.created.min())
         val minDate = Actions.created.min().alias("minDate")
-        val weekMinusRowNumber = YearWeekMinus(Actions.created.min(), rows).alias("weekMinusRow")
+        val weekMinusRowNumber = YearWeekMinus(Actions.created, rows).alias("weekMinusRow")
         val maxDate = Actions.created.max().alias("maxDate")
 
         val idCounts = Actions.id.count().alias("counts")
@@ -66,7 +66,7 @@ object ActionRepository {
         val dateInGroup = AsDate(Actions.created).alias("dateInGroup")
         val rows = RowNumber(Actions.created.min())
         val minDate = Actions.created.min().alias("minDate")
-        val dateMinusRowNumber = DateMinus(Actions.created.min(), rows).alias("dateMinusRow")
+        val dateMinusRowNumber = DateMinus(Actions.created, rows).alias("dateMinusRow")
         val maxDate = Actions.created.max().alias("maxDate")
         val idCounts = Actions.id.count().alias("counts")
 
