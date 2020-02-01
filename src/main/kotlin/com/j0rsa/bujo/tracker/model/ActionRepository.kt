@@ -29,30 +29,22 @@ object ActionRepository {
 
     fun findStreakForWeek(habitId: HabitId): List<StreakRecord> {
         val weekInGroup = yearAndWeekFromDate().alias("weekInGroup")
-        val week = yearAndWeekFromDate().alias("week")
-
-        val idCounts = Actions.id.count().alias("counts")
-        val groupedAlias = (Actions innerJoin Habits)
-            .slice(idCounts, weekInGroup)
-            .select { Habits.id eq habitId.value }
-            .groupBy(weekInGroup)
-            .alias("groupedAlias")
-
         val rows = RowNumber(Actions.created.min())
         val minDate = Actions.created.min().alias("minDate")
         val weekMinusRowNumber = YearWeekMinus(Actions.created.min(), rows).alias("weekMinusRow")
         val maxDate = Actions.created.max().alias("maxDate")
 
-        val weekDataAlias = (Actions innerJoin Habits)
-            .slice(week, minDate, maxDate, weekMinusRowNumber)
+        val idCounts = Actions.id.count().alias("counts")
+        val groupedAlias = (Actions innerJoin Habits)
+            .slice(idCounts, weekInGroup, minDate, maxDate, weekMinusRowNumber)
             .select { Habits.id eq habitId.value }
-            .groupBy(week)
-            .alias("weekDataAlias")
+            .groupBy(weekInGroup)
+            .alias("groupedAlias")
 
         val streak = Sum(groupedAlias[idCounts]).alias("streak")
-        val startDate = MinDate(weekDataAlias[minDate]).alias("startDate")
-        val endDate = MaxDate(weekDataAlias[maxDate]).alias("endDate")
-        val weekMinusRow = weekDataAlias[weekMinusRowNumber].alias("weekMinusRow")
+        val startDate = MinDate(groupedAlias[minDate]).alias("startDate")
+        val endDate = MaxDate(groupedAlias[maxDate]).alias("endDate")
+        val weekMinusRow = groupedAlias[weekMinusRowNumber].alias("weekMinusRow")
 
         fun ResultRow.toStreakRecord() = StreakRecord(
             startDate = this[startDate]?.let { DateTime(it.time) },
@@ -60,7 +52,7 @@ object ActionRepository {
             streak = this[streak]
         )
 
-        val query = Join(weekDataAlias).leftJoin(groupedAlias, { groupedAlias[weekInGroup] }, { weekDataAlias[week] })
+        val query = groupedAlias
             .slice(startDate, endDate, streak, weekMinusRow)
             .selectAll()
             .groupBy(weekMinusRow)
@@ -72,30 +64,22 @@ object ActionRepository {
 
     fun findStreakForDay(habitId: HabitId): List<StreakRecord> {
         val dateInGroup = AsDate(Actions.created).alias("dateInGroup")
-        val date = AsDate(Actions.created).alias("date")
-
-        val idCounts = Actions.id.count().alias("counts")
-        val groupedAlias = (Actions innerJoin Habits)
-            .slice(idCounts, dateInGroup)
-            .select { Habits.id eq habitId.value }
-            .groupBy(dateInGroup)
-            .alias("groupedAlias")
-
         val rows = RowNumber(Actions.created.min())
         val minDate = Actions.created.min().alias("minDate")
         val dateMinusRowNumber = DateMinus(Actions.created.min(), rows).alias("dateMinusRow")
         val maxDate = Actions.created.max().alias("maxDate")
+        val idCounts = Actions.id.count().alias("counts")
 
-        val weekDataAlias = (Actions innerJoin Habits)
-            .slice(date, minDate, maxDate, dateMinusRowNumber)
+        val groupedAlias = (Actions innerJoin Habits)
+            .slice(idCounts, dateInGroup, minDate, maxDate, dateMinusRowNumber)
             .select { Habits.id eq habitId.value }
-            .groupBy(date)
-            .alias("weekDataAlias")
+            .groupBy(dateInGroup)
+            .alias("groupedAlias")
 
         val streak = Sum(groupedAlias[idCounts]).alias("streak")
-        val startDate = MinDate(weekDataAlias[minDate]).alias("startDate")
-        val endDate = MaxDate(weekDataAlias[maxDate]).alias("endDate")
-        val dateMinusRow = weekDataAlias[dateMinusRowNumber].alias("dateMinusRow")
+        val startDate = MinDate(groupedAlias[minDate]).alias("startDate")
+        val endDate = MaxDate(groupedAlias[maxDate]).alias("endDate")
+        val dateMinusRow = groupedAlias[dateMinusRowNumber].alias("dateMinusRow")
 
         fun ResultRow.toStreakRecord() = StreakRecord(
             startDate = this[startDate]?.let { DateTime(it.time) },
@@ -103,7 +87,7 @@ object ActionRepository {
             streak = this[streak]
         )
 
-        val query = Join(weekDataAlias).leftJoin(groupedAlias, { groupedAlias[dateInGroup] }, { weekDataAlias[date] })
+        val query = groupedAlias
             .slice(startDate, endDate, streak, dateMinusRow)
             .selectAll()
             .groupBy(dateMinusRow)
