@@ -27,7 +27,21 @@ object ActionRepository {
     fun findOneBy(actionId: ActionId, userId: UserId) =
         Action.find { (Actions.id eq actionId.value) and (Actions.user eq userId.value) }.toList()
 
+    fun findStreakForDay(habitId: HabitId): List<StreakRecord> {
+        val (query, toRecord) = queryStreakForDay(habitId)
+        return query
+            .map(toRecord)
+            .toList()
+    }
+
     fun findStreakForWeek(habitId: HabitId): List<StreakRecord> {
+        val (query, toRecord) = queryStreakForWeek(habitId)
+        return query
+            .map(toRecord)
+            .toList()
+    }
+
+    private fun queryStreakForWeek(habitId: HabitId): Pair<Query, (ResultRow) -> StreakRecord> {
         val firstDate = Actions.created.min().alias("firstDate")
         val firstActionDateQuery = (Actions innerJoin Habits)
             .slice(firstDate, Habits.id)
@@ -54,8 +68,8 @@ object ActionRepository {
         val weekMinusRow = groupedAlias[weekMinusRowNumber].alias("weekMinusRow")
 
         fun ResultRow.toStreakRecord() = StreakRecord(
-            startDate = this[startDate]?.let { DateTime(it.time) },
-            endDate = this[endDate]?.let { DateTime(it.time) },
+            startDate = DateTime(this[startDate]),
+            endDate = DateTime(this[endDate]),
             streak = this[streak]
         )
 
@@ -64,12 +78,10 @@ object ActionRepository {
             .selectAll()
             .groupBy(weekMinusRow)
             .orderBy(endDate to SortOrder.DESC)
-        return query
-            .map { it.toStreakRecord() }
-            .toList()
+        return query to { row: ResultRow -> row.toStreakRecord() }
     }
 
-    fun findStreakForDay(habitId: HabitId): List<StreakRecord> {
+    private fun queryStreakForDay(habitId: HabitId): Pair<Query, (ResultRow) -> StreakRecord> {
         val dateInGroup = AsDate(Actions.created).alias("dateInGroup")
         val rows = RowNumber(Actions.created.min())
         val minDate = Actions.created.min().alias("minDate")
@@ -89,8 +101,8 @@ object ActionRepository {
         val dateMinusRow = groupedAlias[dateMinusRowNumber].alias("dateMinusRow")
 
         fun ResultRow.toStreakRecord() = StreakRecord(
-            startDate = this[startDate]?.let { DateTime(it.time) },
-            endDate = this[endDate]?.let { DateTime(it.time) },
+            startDate = DateTime(this[startDate]),
+            endDate = DateTime(this[endDate]),
             streak = this[streak]
         )
 
@@ -99,13 +111,15 @@ object ActionRepository {
             .selectAll()
             .groupBy(dateMinusRow)
             .orderBy(endDate to SortOrder.DESC)
-        return query
-            .map { it.toStreakRecord() }
-            .toList()
+        return query to { row: ResultRow -> row.toStreakRecord() }
     }
 
     private fun weeksBetweenCreatedAnd(firstActionDate: Expression<DateTime?>) =
-        Divide(DatePart(Minus(DateTrunc(Actions.created, Week), DateTrunc(firstActionDate, Week)), Days), 7)
+        weeksBetween(Actions.created, firstActionDate)
+
+
+    private fun weeksBetween(firstDate: Expression<DateTime?>, secondDate: Expression<DateTime?>) =
+        Divide(DatePart(Minus(DateTrunc(firstDate, Week), DateTrunc(secondDate, Week)), Days), 7)
 
 
     private fun weeksBetweenCreatedMinusRowNumber(firstActionDate: Expression<DateTime?>): Minus<Double?> {

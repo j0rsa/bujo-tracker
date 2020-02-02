@@ -5,7 +5,9 @@ import assertk.assertThat
 import assertk.assertions.*
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.userId
+import org.joda.time.DateTime
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 
 internal class ActionServiceTest : TransactionalTest {
     @Test
@@ -153,6 +155,112 @@ internal class ActionServiceTest : TransactionalTest {
             val result = ActionService.findOneBy(ActionId.randomValue(), userId)
             assertThat(result.isLeft())
             assertThat(isNotFound(result))
+        }
+    }
+
+    @Test
+    fun findStreakForDayWhenHasCurrentStreak() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val yesterday = DateTime.now().minusDays(1)
+            insertDefaultAction(user, habit = habit, created = yesterday)
+            insertDefaultAction(user, habit = habit, created = yesterday.minusDays(1))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 15, 8, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 14, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 13, 23, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 11, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 22, 20, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 21, 10, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 20, 12, 0))
+
+            val result = ActionService.findStreakForDay(habit.idValue())
+            assertThat(result.currentStreak).isEqualTo(BigDecimal(2))
+            assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
+        }
+    }
+
+    @Test
+    fun findStreakForDayWhenNotCurrentStreak() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val notYesterday = DateTime.now().minusDays(2)
+            insertDefaultAction(user, habit = habit, created = notYesterday)
+            insertDefaultAction(user, habit = habit, created = notYesterday.minusDays(1))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 15, 8, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 14, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 13, 23, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 11, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 22, 20, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 21, 10, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 20, 12, 0))
+
+            val result = ActionService.findStreakForDay(habit.idValue())
+            assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
+            assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
+        }
+    }
+
+    @Test
+    fun findStreakForDayWhenNoData() {
+        tempTx {
+            val habit = defaultHabit(user)
+
+            val result = ActionService.findStreakForDay(habit.idValue())
+            assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
+            assertThat(result.maxStreak).isEqualTo(BigDecimal.ZERO)
+        }
+    }
+
+    @Test
+    fun findStreakForWeekWhenHasCurrentStreak() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val previousWeek = DateTime.now().minusWeeks(1)
+            insertDefaultAction(user, habit = habit, created = previousWeek)
+            insertDefaultAction(user, habit = habit, created = previousWeek.minusWeeks(1))
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 2, 8, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 12, 30, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 12, 29, 23, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 13, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 12, 11, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 12, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 10, 0))
+
+            val result = ActionService.findStreakForWeek(habit.idValue())
+            assertThat(result.currentStreak).isEqualTo(BigDecimal(2))
+            assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
+        }
+    }
+
+    @Test
+    fun findStreakForWeekWhenNoCurrentStreak() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val notPreviousWeek = DateTime.now().minusWeeks(2)
+            insertDefaultAction(user, habit = habit, created = notPreviousWeek)
+            insertDefaultAction(user, habit = habit, created = notPreviousWeek.minusWeeks(1))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 1, 2, 8, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2018, 12, 31, 9, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2018, 12, 29, 23, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 23, 13, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 12, 11, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 6, 12, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 6, 10, 0))
+
+            val result = ActionService.findStreakForWeek(habit.idValue())
+            assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
+            assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
+        }
+    }
+
+    @Test
+    fun findStreakForWeekWhenNoData() {
+        tempTx {
+            val habit = defaultHabit(user)
+
+            val result = ActionService.findStreakForWeek(habit.idValue())
+            assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
+            assertThat(result.maxStreak).isEqualTo(BigDecimal.ZERO)
         }
     }
 }

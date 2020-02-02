@@ -4,17 +4,21 @@ import arrow.core.Either
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TransactionManager
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.habitInfoLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.multipleHabitsLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.response
 import com.j0rsa.bujo.tracker.handler.RequestLens.userLens
 import com.j0rsa.bujo.tracker.model.*
+import com.j0rsa.bujo.tracker.model.Period.Day
+import com.j0rsa.bujo.tracker.model.Period.Week
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status.Companion.CREATED
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
 import org.joda.time.DateTime
+import java.math.BigDecimal
 
 object HabitHandler {
 
@@ -34,10 +38,19 @@ object HabitHandler {
     }
 
     fun findOne() = { req: Request ->
-        val habitResult = TransactionManager.tx {
+        val result = TransactionManager.tx {
             HabitService.findOneBy(habitIdLens(req), userLens(req))
+        }.map {
+            val streak = findStreaks(it)
+            val habitInfo = HabitInfoView(it.toView(), streak)
+            habitInfoLens(habitInfo, Response(OK))
         }
-        responseFrom(habitResult)
+        responseFrom(result)
+    }
+
+    private fun findStreaks(it: HabitRow): StreakRow = when (it.period) {
+        Day -> ActionService.findStreakForDay(it.id!!)
+        Week -> ActionService.findStreakForWeek(it.id!!)
     }
 
     fun findAll() = { req: Request ->
@@ -48,15 +61,15 @@ object HabitHandler {
     }
 
     fun update() = { req: Request ->
-        val habitResult = TransactionManager.tx {
+        val result = TransactionManager.tx {
             HabitService.update(req.toHabitDto())
-        }
-        responseFrom(habitResult)
+        }.map { habitLens(it.toView(), Response(OK)) }
+        responseFrom(result)
     }
 
-    private fun responseFrom(habitResult: Either<TrackerError, HabitRow>): Response = when (habitResult) {
-        is Either.Left -> response(habitResult)
-        is Either.Right -> habitLens(habitResult.b.toView(), Response(OK))
+    private fun responseFrom(result: Either<TrackerError, Response>): Response = when (result) {
+        is Either.Left -> response(result)
+        is Either.Right -> result.b
     }
 
     private fun Request.toHabitDto() = HabitRow(habitLens(this), userLens(this))
@@ -71,4 +84,14 @@ data class HabitView(
     val bad: Boolean?,
     val startFrom: DateTime?,
     val id: HabitId? = null
+)
+
+data class HabitInfoView(
+    val habitView: HabitView,
+    val streakRow: StreakRow
+)
+
+data class StreakRow(
+    val currentStreak: BigDecimal = BigDecimal.ZERO,
+    val maxStreak: BigDecimal = BigDecimal.ZERO
 )

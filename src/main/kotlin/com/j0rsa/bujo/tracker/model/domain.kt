@@ -2,6 +2,7 @@ package com.j0rsa.bujo.tracker.model
 
 import com.j0rsa.bujo.tracker.handler.ActionView
 import com.j0rsa.bujo.tracker.handler.HabitView
+import com.j0rsa.bujo.tracker.handler.StreakRow
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
@@ -222,9 +223,9 @@ data class ActionRow(
 }
 
 data class StreakRecord(
-    val startDate: DateTime?,
-    val endDate: DateTime?,
-    val streak: BigDecimal?
+    val startDate: DateTime,
+    val endDate: DateTime,
+    val streak: BigDecimal
 )
 
 object UserTags : Table("user-tags") {

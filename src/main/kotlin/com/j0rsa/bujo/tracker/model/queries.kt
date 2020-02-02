@@ -17,19 +17,19 @@ class DatePart(private val expr: Expression<DateTime?>, private val part: DatePa
     }
 }
 
-class MinDate(private val expr: Expression<DateTime?>) : Expression<Timestamp?>() {
+class MinDate(private val expr: Expression<DateTime?>) : Expression<Timestamp>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         append("min(", expr, ")")
     }
 }
 
-class MaxDate(private val expr: Expression<DateTime?>) : Expression<Timestamp?>() {
+class MaxDate(private val expr: Expression<DateTime?>) : Expression<Timestamp>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         append("max(", expr, ")")
     }
 }
 
-class Sum(private val expr: Expression<Int>) : Expression<BigDecimal?>() {
+class Sum(private val expr: Expression<Int>) : Expression<BigDecimal>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         append("sum(", expr, ")")
     }
