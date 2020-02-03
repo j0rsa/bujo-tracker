@@ -207,4 +207,45 @@ internal class ActionRepositoryTest : TransactionalTest {
             assertThat(result).isEmpty()
         }
     }
+
+    @Test
+    fun findStreakForWeekWhenHasCurrentStreakPreviousWeek() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val previousWeek = DateTime.now().minusWeeks(1)
+            insertDefaultAction(user, habit = habit, created = previousWeek)
+            insertDefaultAction(user, habit = habit, created = previousWeek.minusWeeks(1))
+
+            val result = ActionRepository.findCurrentStreakForWeek(habit.idValue(), 1)
+            assertThat(result).hasSize(1)
+            assertThat(result.first()).isEqualTo(BigDecimal(2))
+        }
+    }
+
+    @Test
+    fun findStreakForWeekWhenHasCurrentStreakNextWeek() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val nextWeek = DateTime.now().plusWeeks(1)
+            insertDefaultAction(user, habit = habit, created = nextWeek)
+            insertDefaultAction(user, habit = habit, created = nextWeek.plusWeeks(1))
+
+            val result = ActionRepository.findCurrentStreakForWeek(habit.idValue(), 1)
+            assertThat(result).hasSize(1)
+            assertThat(result.first()).isEqualTo(BigDecimal(2))
+        }
+    }
+
+    @Test
+    fun findStreakForWeekWhenNoCurrentStreak() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val notPreviousWeek = DateTime.now().minusWeeks(2)
+            insertDefaultAction(user, habit = habit, created = notPreviousWeek)
+            insertDefaultAction(user, habit = habit, created = notPreviousWeek.minusWeeks(1))
+
+            val result = ActionRepository.findCurrentStreakForWeek(habit.idValue(), 1)
+            assertThat(result).isEmpty()
+        }
+    }
 }
