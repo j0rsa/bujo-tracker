@@ -29,22 +29,22 @@ object ActionRepository {
 
     fun findStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
         """
+            WITH
+              groups(minDate, maxDate, weekMinusRow) AS (
+                SELECT
+                  MIN(created) minDate,
+                  MAX(created) maxDate,
+                  (DATE_PART('day', created - to_timestamp(0))/7)::int - ROW_NUMBER() OVER (ORDER BY MIN(created)) weekMinusRow
+                FROM Actions
+                WHERE habit is not null and habit = ?
+                GROUP BY (DATE_PART('day', created - to_timestamp(0))/7)::int
+                HAVING COUNT(*) >= ?
+              )
             SELECT
               COUNT(*) streak,
               MIN(minDate) startDate,
               MAX(maxDate) endDate
-            FROM (
-              SELECT 
-                COUNT(*) counts,
-                MIN(created) minDate,
-                MAX(created) maxDate,
-                (DATE_PART('day', created - to_timestamp(0))/7)::int weeks,
-                (DATE_PART('day', created - to_timestamp(0))/7)::int - ROW_NUMBER() OVER (ORDER BY MIN(created)) weekMinusRow
-              FROM Actions
-              WHERE habit is not null and habit = ?
-              GROUP BY (DATE_PART('day', created - to_timestamp(0))/7)::int
-              HAVING COUNT(*) >= ?
-            ) groupedRows
+            FROM groups
             GROUP BY weekMinusRow
             ORDER BY endDate DESC
         """.trimIndent()
