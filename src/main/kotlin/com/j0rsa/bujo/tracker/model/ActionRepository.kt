@@ -83,21 +83,22 @@ object ActionRepository {
 
     fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
         ("""
+            WITH
+              groups(minDate, maxDate, dateMinusRow) AS (
+                SELECT 
+                    MIN(created) minDate,
+                    MAX(created) maxDate,
+                    date_trunc('day', created) - INTERVAL '1' DAY * ROW_NUMBER() OVER (ORDER BY MIN(created)) dateMinusRow
+                FROM Actions
+                WHERE habit is not null and habit = ?
+                GROUP BY date_trunc('day', created)
+                HAVING COUNT(*) >= ?
+              )
             SELECT
-              COUNT(*) streak,
-              MIN(minDate) startDate,
-              MAX(maxDate) endDate
-            FROM (
-              SELECT 
-                COUNT(*) amount,
-                MIN(created) minDate,
-                MAX(created) maxDate,
-                date_trunc('day', created) - INTERVAL '1' DAY * ROW_NUMBER() OVER (ORDER BY MIN(created)) dateMinusRow
-              FROM Actions
-              WHERE habit is not null and habit = ?
-              GROUP BY date_trunc('day', created)
-              HAVING COUNT(*) >= ?
-            ) groupedDays
+              COUNT(*) AS streak,
+              MIN(minDate) AS startDate,
+              MAX(maxDate) AS endDate
+            FROM groups
             GROUP BY dateMinusRow
             ORDER BY endDate DESC
             """
