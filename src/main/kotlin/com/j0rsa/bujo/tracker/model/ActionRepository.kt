@@ -1,9 +1,8 @@
 package com.j0rsa.bujo.tracker.model
 
-import com.j0rsa.bujo.tracker.model.DatePartEnum.Days
-import com.j0rsa.bujo.tracker.model.DatePartEnum.Week
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
+import java.sql.ResultSet
 
 object ActionRepository {
     fun findAllWithOneTagWithoutAnother(oneTag: TagId, anotherTag: TagId): List<Action> {
@@ -27,103 +26,63 @@ object ActionRepository {
     fun findOneBy(actionId: ActionId, userId: UserId) =
         Action.find { (Actions.id eq actionId.value) and (Actions.user eq userId.value) }.toList()
 
-    fun findStreakForDay(habitId: HabitId): List<StreakRecord> {
-        val (query, toRecord) = queryStreakForDay(habitId)
-        return query
-            .map(toRecord)
-            .toList()
-    }
+    fun findStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
+        """
+            SELECT
+              COUNT(*) streak,
+              MIN(minDate) startDate,
+              MAX(maxDate) endDate
+            FROM (
+              SELECT 
+                COUNT(*) counts,
+                MIN(created) minDate,
+                MAX(created) maxDate,
+                (DATE_PART('day', created - to_timestamp(0))/7)::int weeks,
+                (DATE_PART('day', created - to_timestamp(0))/7)::int - ROW_NUMBER() OVER (ORDER BY MIN(created)) weekMinusRow
+              FROM Actions
+              WHERE habit is not null and habit = ?
+              GROUP BY (DATE_PART('day', created - to_timestamp(0))/7)::int
+              HAVING COUNT(*) >= ?
+            ) groupedRows
+            GROUP BY weekMinusRow
+            ORDER BY endDate DESC
+        """.trimIndent()
+            .exec({
+                setObject(1, habitId.value)
+                setInt(2, numberOfRepetitions)
+            }, streakRecord())
 
-    fun findStreakForWeek(habitId: HabitId): List<StreakRecord> {
-        val (query, toRecord) = queryStreakForWeek(habitId)
-        return query
-            .map(toRecord)
-            .toList()
-    }
+    fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
+        ("""
+            SELECT
+              COUNT(*) streak,
+              MIN(minDate) startDate,
+              MAX(maxDate) endDate
+            FROM (
+              SELECT 
+                COUNT(*) amount,
+                MIN(created) minDate,
+                MAX(created) maxDate,
+                date_trunc('day', created) - INTERVAL '1' DAY * ROW_NUMBER() OVER (ORDER BY MIN(created)) dateMinusRow
+              FROM Actions
+              WHERE habit is not null and habit = ?
+              GROUP BY date_trunc('day', created)
+              HAVING COUNT(*) >= ?
+            ) groupedDays
+            GROUP BY dateMinusRow
+            ORDER BY endDate DESC
+            """
+            .trimIndent())
+            .exec({
+                setObject(1, habitId.value)
+                setInt(2, numberOfRepetitions)
+            }, streakRecord())
 
-    private fun queryStreakForWeek(habitId: HabitId): Pair<Query, (ResultRow) -> StreakRecord> {
-        val firstDate = Actions.created.min().alias("firstDate")
-        val firstActionDateQuery = (Actions innerJoin Habits)
-            .slice(firstDate, Habits.id)
-            .select { Habits.id eq habitId.value }
-            .groupBy(Habits.id)
-            .alias("firstActionDateQuery")
-        val weeksBetweenFirstAction = weeksBetweenCreatedAnd(firstActionDateQuery[firstDate]).alias("weekInGroup")
-        val minDate = Actions.created.min().alias("minDate")
-        val weekMinusRowNumber =
-            weeksBetweenCreatedMinusRowNumber(firstActionDateQuery[firstDate]).alias("weekMinusRow")
-        val maxDate = Actions.created.max().alias("maxDate")
-
-        val idCounts = Actions.id.count().alias("counts")
-        val groupedAlias = (Actions innerJoin Habits)
-            .innerJoin(firstActionDateQuery, { Habits.id }, { firstActionDateQuery[Habits.id] })
-            .slice(idCounts, weeksBetweenFirstAction, minDate, maxDate, weekMinusRowNumber)
-            .select { Habits.id eq habitId.value }
-            .groupBy(weeksBetweenFirstAction)
-            .alias("groupedAlias")
-
-        val streak = Sum(groupedAlias[idCounts]).alias("streak")
-        val startDate = MinDate(groupedAlias[minDate]).alias("startDate")
-        val endDate = MaxDate(groupedAlias[maxDate]).alias("endDate")
-        val weekMinusRow = groupedAlias[weekMinusRowNumber].alias("weekMinusRow")
-
-        fun ResultRow.toStreakRecord() = StreakRecord(
-            startDate = DateTime(this[startDate]),
-            endDate = DateTime(this[endDate]),
-            streak = this[streak]
+    private fun streakRecord() = { res: ResultSet ->
+        StreakRecord(
+            streak = res.getBigDecimal("streak"),
+            startDate = DateTime(res.getTimestamp("startDate")),
+            endDate = DateTime(res.getTimestamp("endDate"))
         )
-
-        val query = groupedAlias
-            .slice(startDate, endDate, streak, weekMinusRow)
-            .selectAll()
-            .groupBy(weekMinusRow)
-            .orderBy(endDate to SortOrder.DESC)
-        return query to { row: ResultRow -> row.toStreakRecord() }
-    }
-
-    private fun queryStreakForDay(habitId: HabitId): Pair<Query, (ResultRow) -> StreakRecord> {
-        val dateInGroup = AsDate(Actions.created).alias("dateInGroup")
-        val rows = RowNumber(Actions.created.min())
-        val minDate = Actions.created.min().alias("minDate")
-        val dateMinusRowNumber = DateMinus(Actions.created, rows).alias("dateMinusRow")
-        val maxDate = Actions.created.max().alias("maxDate")
-        val idCounts = Actions.id.count().alias("counts")
-
-        val groupedAlias = (Actions innerJoin Habits)
-            .slice(idCounts, dateInGroup, minDate, maxDate, dateMinusRowNumber)
-            .select { Habits.id eq habitId.value }
-            .groupBy(dateInGroup)
-            .alias("groupedAlias")
-
-        val streak = Sum(groupedAlias[idCounts]).alias("streak")
-        val startDate = MinDate(groupedAlias[minDate]).alias("startDate")
-        val endDate = MaxDate(groupedAlias[maxDate]).alias("endDate")
-        val dateMinusRow = groupedAlias[dateMinusRowNumber].alias("dateMinusRow")
-
-        fun ResultRow.toStreakRecord() = StreakRecord(
-            startDate = DateTime(this[startDate]),
-            endDate = DateTime(this[endDate]),
-            streak = this[streak]
-        )
-
-        val query = groupedAlias
-            .slice(startDate, endDate, streak, dateMinusRow)
-            .selectAll()
-            .groupBy(dateMinusRow)
-            .orderBy(endDate to SortOrder.DESC)
-        return query to { row: ResultRow -> row.toStreakRecord() }
-    }
-
-    private fun weeksBetweenCreatedAnd(firstActionDate: Expression<DateTime?>) =
-        weeksBetween(Actions.created, firstActionDate)
-
-
-    private fun weeksBetween(firstDate: Expression<DateTime?>, secondDate: Expression<DateTime?>) =
-        Divide(DatePart(Minus(DateTrunc(firstDate, Week), DateTrunc(secondDate, Week)), Days), 7)
-
-
-    private fun weeksBetweenCreatedMinusRowNumber(firstActionDate: Expression<DateTime?>): Minus<Double?> {
-        val rows = RowNumber(Actions.created.min())
-        return Minus(weeksBetweenCreatedAnd(firstActionDate), rows)
     }
 }

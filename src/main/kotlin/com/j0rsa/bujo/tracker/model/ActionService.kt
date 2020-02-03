@@ -70,14 +70,14 @@ object ActionService {
             action.delete()
         }.fix()
 
-    fun findStreakForDay(id: HabitId): StreakRow {
-        val result = ActionRepository.findStreakForDay(id)
+    fun findStreakForDay(id: HabitId, numberOfRepetitions: Int): StreakRow {
+        val result = ActionRepository.findStreakForDay(id, numberOfRepetitions)
         val currentStreak = result.firstOrNull()?.checkStreakOrNull(isEndDateCurrentDay) ?: BigDecimal.ZERO
         return StreakRow(currentStreak, maxStreakOrZero(result))
     }
 
-    fun findStreakForWeek(id: HabitId): StreakRow {
-        val result = ActionRepository.findStreakForWeek(id)
+    fun findStreakForWeek(id: HabitId, numberOfRepetitions: Int): StreakRow {
+        val result = ActionRepository.findStreakForWeek(id, numberOfRepetitions)
         val currentStreak = result.firstOrNull()?.checkStreakOrNull(isEndDateCurrentWeek) ?: BigDecimal.ZERO
         return StreakRow(currentStreak, maxStreakOrZero(result))
     }

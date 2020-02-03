@@ -49,8 +49,8 @@ object HabitHandler {
     }
 
     private fun findStreaks(it: HabitRow): StreakRow = when (it.period) {
-        Day -> ActionService.findStreakForDay(it.id!!)
-        Week -> ActionService.findStreakForWeek(it.id!!)
+        Day -> ActionService.findStreakForDay(it.id!!, it.numberOfRepetitions)
+        Week -> ActionService.findStreakForWeek(it.id!!, it.numberOfRepetitions)
     }
 
     fun findAll() = { req: Request ->

@@ -173,7 +173,7 @@ internal class ActionServiceTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 21, 10, 0))
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 20, 12, 0))
 
-            val result = ActionService.findStreakForDay(habit.idValue())
+            val result = ActionService.findStreakForDay(habit.idValue(), 1)
             assertThat(result.currentStreak).isEqualTo(BigDecimal(2))
             assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
         }
@@ -194,7 +194,7 @@ internal class ActionServiceTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 21, 10, 0))
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 20, 12, 0))
 
-            val result = ActionService.findStreakForDay(habit.idValue())
+            val result = ActionService.findStreakForDay(habit.idValue(), 1)
             assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
             assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
         }
@@ -205,7 +205,7 @@ internal class ActionServiceTest : TransactionalTest {
         tempTx {
             val habit = defaultHabit(user)
 
-            val result = ActionService.findStreakForDay(habit.idValue())
+            val result = ActionService.findStreakForDay(habit.idValue(), 1)
             assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
             assertThat(result.maxStreak).isEqualTo(BigDecimal.ZERO)
         }
@@ -218,17 +218,23 @@ internal class ActionServiceTest : TransactionalTest {
             val previousWeek = DateTime.now().minusWeeks(1)
             insertDefaultAction(user, habit = habit, created = previousWeek)
             insertDefaultAction(user, habit = habit, created = previousWeek.minusWeeks(1))
+
+            //1 part of streak 2
             insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 2, 8, 0))
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 12, 30, 9, 0))
+            //2 part of streak 2
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 12, 29, 23, 0))
+
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 13, 0))
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 12, 11, 0))
+            //same week 3 part of streak 3
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 12, 0))
             insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 10, 0))
 
-            val result = ActionService.findStreakForWeek(habit.idValue())
+
+            val result = ActionService.findStreakForWeek(habit.idValue(), 1)
             assertThat(result.currentStreak).isEqualTo(BigDecimal(2))
-            assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
+            assertThat(result.maxStreak).isEqualTo(BigDecimal(3))
         }
     }
 
@@ -239,17 +245,22 @@ internal class ActionServiceTest : TransactionalTest {
             val notPreviousWeek = DateTime.now().minusWeeks(2)
             insertDefaultAction(user, habit = habit, created = notPreviousWeek)
             insertDefaultAction(user, habit = habit, created = notPreviousWeek.minusWeeks(1))
-            insertDefaultAction(user, habit = habit, created = DateTime(2019, 1, 2, 8, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2018, 12, 31, 9, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2018, 12, 29, 23, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 23, 13, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 12, 11, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 6, 12, 0))
-            insertDefaultAction(user, habit = habit, created = DateTime(2018, 11, 6, 10, 0))
 
-            val result = ActionService.findStreakForWeek(habit.idValue())
+            //1 part of streak 2
+            insertDefaultAction(user, habit = habit, created = DateTime(2020, 1, 2, 8, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 12, 30, 9, 0))
+            //2 part of streak 2
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 12, 29, 23, 0))
+
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 23, 13, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 12, 11, 0))
+            //same week 3 part of streak 3
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 12, 0))
+            insertDefaultAction(user, habit = habit, created = DateTime(2019, 11, 6, 10, 0))
+
+            val result = ActionService.findStreakForWeek(habit.idValue(), 1)
             assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
-            assertThat(result.maxStreak).isEqualTo(BigDecimal(4))
+            assertThat(result.maxStreak).isEqualTo(BigDecimal(3))
         }
     }
 
@@ -258,7 +269,7 @@ internal class ActionServiceTest : TransactionalTest {
         tempTx {
             val habit = defaultHabit(user)
 
-            val result = ActionService.findStreakForWeek(habit.idValue())
+            val result = ActionService.findStreakForWeek(habit.idValue(), 1)
             assertThat(result.currentStreak).isEqualTo(BigDecimal.ZERO)
             assertThat(result.maxStreak).isEqualTo(BigDecimal.ZERO)
         }
