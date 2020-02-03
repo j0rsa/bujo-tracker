@@ -2,6 +2,7 @@ package com.j0rsa.bujo.tracker.model
 
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
+import java.math.BigDecimal
 import java.sql.ResultSet
 
 object ActionRepository {
@@ -77,6 +78,35 @@ object ActionRepository {
                 setObject(1, habitId.value)
                 setInt(2, numberOfRepetitions)
             }, streakRecord())
+
+    fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): ArrayList<BigDecimal> =
+        ("""
+            SELECT
+              COUNT(*) streak,
+              MIN(minDate) startDate,
+              MAX(maxDate) endDate
+            FROM (
+              SELECT 
+                COUNT(*) amount,
+                MIN(date_trunc('day', created)) minDate,
+                MAX(date_trunc('day', created)) maxDate,
+                date_trunc('day', created) - INTERVAL '1' DAY * ROW_NUMBER() OVER (ORDER BY MIN(created)) dateMinusRow
+              FROM Actions
+              WHERE habit is not null and habit = ?
+              GROUP BY date_trunc('day', created)
+              HAVING COUNT(*) >= ?
+            ) groupedDays
+            GROUP BY dateMinusRow
+            HAVING date_part('day', date_trunc('day', now()) - MAX(maxDate)) in (0, 1) 
+                OR date_part('day', date_trunc('day', MIN(minDate) - now())) in (0, 1) 
+            ORDER BY endDate DESC
+            LIMIT 1
+            """
+            .trimIndent())
+            .exec({
+                setObject(1, habitId.value)
+                setInt(2, numberOfRepetitions)
+            }, {it.getBigDecimal("streak")})
 
     private fun streakRecord() = { res: ResultSet ->
         StreakRecord(

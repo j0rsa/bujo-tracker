@@ -166,4 +166,45 @@ internal class ActionRepositoryTest : TransactionalTest {
             assertThat(record.first().endDate).isEqualTo(endDateOfLastStreak)
         }
     }
+
+    @Test
+    fun findStreakForDayWhenHasCurrentStreakYesterday() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val yesterday = DateTime.now().minusDays(1)
+            insertDefaultAction(user, habit = habit, created = yesterday)
+            insertDefaultAction(user, habit = habit, created = yesterday.minusDays(1))
+
+            val result = ActionRepository.findCurrentStreakForDay(habit.idValue(), 1)
+            assertThat(result).hasSize(1)
+            assertThat(result.first()).isEqualTo(BigDecimal(2))
+        }
+    }
+
+    @Test
+    fun findStreakForDayWhenHasCurrentStreakTomorrow() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val tomorrow = DateTime.now().plusDays(2)
+            insertDefaultAction(user, habit = habit, created = tomorrow)
+            insertDefaultAction(user, habit = habit, created = tomorrow.plusDays(1))
+
+            val result = ActionRepository.findCurrentStreakForDay(habit.idValue(), 1)
+            assertThat(result).hasSize(1)
+            assertThat(result.first()).isEqualTo(BigDecimal(2))
+        }
+    }
+
+    @Test
+    fun findStreakForDayWhenNoCurrentStreak() {
+        tempTx {
+            val habit = defaultHabit(user)
+            val dayBeforeYesterday = DateTime.now().minusDays(2)
+            insertDefaultAction(user, habit = habit, created = dayBeforeYesterday)
+            insertDefaultAction(user, habit = habit, created = dayBeforeYesterday.minusDays(1))
+
+            val result = ActionRepository.findCurrentStreakForDay(habit.idValue(), 1)
+            assertThat(result).isEmpty()
+        }
+    }
 }
