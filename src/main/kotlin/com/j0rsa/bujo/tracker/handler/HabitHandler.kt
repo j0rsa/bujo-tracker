@@ -53,10 +53,17 @@ object HabitHandler {
         Week -> ActionService.findStreakForWeek(it.id!!, it.numberOfRepetitions)
     }
 
+    private fun findCurrentStreaks(it: HabitRow) = when (it.period) {
+        Day -> ActionService.findCurrentStreakForDay(it.id!!, it.numberOfRepetitions)
+        Week -> ActionService.findCurrentStreakForWeek(it.id!!, it.numberOfRepetitions)
+    }
+
     fun findAll() = { req: Request ->
         val habits = TransactionManager.tx {
             HabitService.findAll(userLens(req))
-        }.map { it.toView() }
+        }.map {
+            HabitsInfoView(it.toView(), findCurrentStreaks(it))
+        }
         multipleHabitsLens(habits, Response(OK))
     }
 
@@ -84,6 +91,11 @@ data class HabitView(
     val bad: Boolean?,
     val startFrom: DateTime?,
     val id: HabitId? = null
+)
+
+data class HabitsInfoView(
+    val habitView: HabitView,
+    val currentStreak: BigDecimal = BigDecimal.ZERO
 )
 
 data class HabitInfoView(

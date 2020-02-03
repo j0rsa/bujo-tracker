@@ -17,7 +17,7 @@ import org.http4k.lens.uuid
 object RequestLens {
     val habitInfoLens = Body.auto<HabitInfoView>().toLens()
     val habitLens = Body.auto<HabitView>().toLens()
-    val multipleHabitsLens = Body.auto<List<HabitView>>().toLens()
+    val multipleHabitsLens = Body.auto<List<HabitsInfoView>>().toLens()
     val habitIdLens = Path.uuid().map(::HabitId).of("id")
     val userLens = Header.uuid().map(::UserId).required("X-Auth-Id")
     val tagLens = Body.auto<TagRow>().toLens()
