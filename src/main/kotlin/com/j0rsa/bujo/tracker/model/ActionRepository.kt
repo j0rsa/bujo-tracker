@@ -55,22 +55,22 @@ object ActionRepository {
 
     fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): ArrayList<BigDecimal> =
         """
+            WITH
+              groups(minDate, maxDate, weekMinusRow) AS (
+                SELECT
+                  MIN(date_trunc('day', created)) minDate,
+                  MAX(date_trunc('day', created)) maxDate,
+                  (DATE_PART('day', created - to_timestamp(0))/7)::int - ROW_NUMBER() OVER (ORDER BY MIN(created)) weekMinusRow
+                FROM Actions
+                WHERE habit is not null and habit = ?
+                GROUP BY (DATE_PART('day', created - to_timestamp(0))/7)::int
+                HAVING COUNT(*) >= ?
+              )
             SELECT
               COUNT(*) streak,
               MIN(minDate) startDate,
               MAX(maxDate) endDate
-            FROM (
-              SELECT 
-                COUNT(*) counts,
-                MIN(date_trunc('day', created)) minDate,
-                MAX(date_trunc('day', created)) maxDate,
-                (DATE_PART('day', created - to_timestamp(0))/7)::int weeks,
-                (DATE_PART('day', created - to_timestamp(0))/7)::int - ROW_NUMBER() OVER (ORDER BY MIN(created)) weekMinusRow
-              FROM Actions
-              WHERE habit is not null and habit = ?
-              GROUP BY (DATE_PART('day', created - to_timestamp(0))/7)::int
-              HAVING COUNT(*) >= ?
-            ) groupedRows
+            FROM groups
             GROUP BY weekMinusRow
             HAVING (DATE_PART('day', now() - MAX(maxDate))/7)::int in (0, 1)
                 OR (DATE_PART('day', MIN(minDate) - now())/7)::int in (0, 1)
@@ -110,21 +110,22 @@ object ActionRepository {
 
     fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): ArrayList<BigDecimal> =
         ("""
+            WITH
+              groups(minDate, maxDate, dateMinusRow) AS (
+                SELECT 
+                    MIN(date_trunc('day', created)) minDate,
+                    MAX(date_trunc('day', created)) maxDate,
+                    date_trunc('day', created) - INTERVAL '1' DAY * ROW_NUMBER() OVER (ORDER BY MIN(created)) dateMinusRow
+                FROM Actions
+                WHERE habit is not null and habit = ?
+                GROUP BY date_trunc('day', created)
+                HAVING COUNT(*) >= ?
+              )
             SELECT
-              COUNT(*) streak,
-              MIN(minDate) startDate,
-              MAX(maxDate) endDate
-            FROM (
-              SELECT 
-                COUNT(*) amount,
-                MIN(date_trunc('day', created)) minDate,
-                MAX(date_trunc('day', created)) maxDate,
-                date_trunc('day', created) - INTERVAL '1' DAY * ROW_NUMBER() OVER (ORDER BY MIN(created)) dateMinusRow
-              FROM Actions
-              WHERE habit is not null and habit = ?
-              GROUP BY date_trunc('day', created)
-              HAVING COUNT(*) >= ?
-            ) groupedDays
+              COUNT(*) AS streak,
+              MIN(minDate) AS startDate,
+              MAX(maxDate) AS endDate
+            FROM groups
             GROUP BY dateMinusRow
             HAVING date_part('day', date_trunc('day', now()) - MAX(maxDate)) in (0, 1) 
                 OR date_part('day', date_trunc('day', MIN(minDate) - now())) in (0, 1) 
