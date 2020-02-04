@@ -1,5 +1,6 @@
 package com.j0rsa.bujo.tracker.model
 
+import com.j0rsa.bujo.tracker.model.Param.IntParam
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
 import java.math.BigDecimal
@@ -48,10 +49,11 @@ object ActionRepository {
             GROUP BY weekMinusRow
             ORDER BY endDate DESC
         """.trimIndent()
-            .exec({
-                setObject(1, habitId.value)
-                setInt(2, numberOfRepetitions)
-            }, streakRecord())
+            .exec(
+                param(habitId),
+                param(numberOfRepetitions),
+                transform = streakRecord()
+            )
 
     fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
         """
@@ -77,11 +79,11 @@ object ActionRepository {
             ORDER BY endDate DESC
             LIMIT 1
         """.trimIndent()
-            .exec({
-                setObject(1, habitId.value)
-                setInt(2, numberOfRepetitions)
-            }, { it.getBigDecimal("streak") })
-            .firstOrNull()
+            .exec(
+                param(habitId),
+                param(numberOfRepetitions),
+                transform = { it.getBigDecimal("streak") }
+            ).firstOrNull()
 
     fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
         ("""
@@ -105,10 +107,11 @@ object ActionRepository {
             ORDER BY endDate DESC
             """
             .trimIndent())
-            .exec({
-                setObject(1, habitId.value)
-                setInt(2, numberOfRepetitions)
-            }, streakRecord())
+            .exec(
+                param(habitId),
+                param(numberOfRepetitions),
+                transform = streakRecord()
+            )
 
     fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
         ("""
@@ -135,10 +138,11 @@ object ActionRepository {
             LIMIT 1
             """
             .trimIndent())
-            .exec({
-                setObject(1, habitId.value)
-                setInt(2, numberOfRepetitions)
-            }, { it.getBigDecimal("streak") })
+            .exec(
+                param(habitId),
+                param(numberOfRepetitions),
+                transform = { it.getBigDecimal("streak") }
+            )
             .firstOrNull()
 
     private fun streakRecord() = { res: ResultSet ->
