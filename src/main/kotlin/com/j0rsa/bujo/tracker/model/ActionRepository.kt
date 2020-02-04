@@ -1,10 +1,7 @@
 package com.j0rsa.bujo.tracker.model
 
-import com.j0rsa.bujo.tracker.model.Param.IntParam
 import org.jetbrains.exposed.sql.*
-import org.joda.time.DateTime
 import java.math.BigDecimal
-import java.sql.ResultSet
 
 object ActionRepository {
     fun findAllWithOneTagWithoutAnother(oneTag: TagId, anotherTag: TagId): List<Action> {
@@ -52,7 +49,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = streakRecord()
+                transform = StreakRecord::class.wrapRow()
             )
 
     fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
@@ -82,7 +79,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = { it.getBigDecimal("streak") }
+                transform = BigDecimal::class.wrapValue("streak")
             ).firstOrNull()
 
     fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
@@ -110,7 +107,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = streakRecord()
+                transform = StreakRecord::class.wrapRow()
             )
 
     fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
@@ -141,15 +138,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = { it.getBigDecimal("streak") }
+                transform = BigDecimal::class.wrapValue("streak")
             )
             .firstOrNull()
-
-    private fun streakRecord() = { res: ResultSet ->
-        StreakRecord(
-            streak = res.getBigDecimal("streak"),
-            startDate = DateTime(res.getTimestamp("startDate")),
-            endDate = DateTime(res.getTimestamp("endDate"))
-        )
-    }
 }

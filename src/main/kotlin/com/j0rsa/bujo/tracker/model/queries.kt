@@ -1,10 +1,15 @@
 package com.j0rsa.bujo.tracker.model
 
 import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
+import org.joda.time.DateTime
+import java.math.BigDecimal
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.reflect.KClass
+import kotlin.reflect.KClassifier
+import kotlin.reflect.full.primaryConstructor
 
 fun <T> String.exec(vararg params: Param, transform: (ResultSet) -> T): ArrayList<T> {
     val statement = currentTransaction().connection.prepareStatement(this)
@@ -47,3 +52,27 @@ sealed class Param {
 
 fun param(value: Int): Param.IntParam = Param.IntParam(value)
 fun param(id: HabitId): Param.UUIDParam = Param.UUIDParam(id.value)
+
+fun <T : Any> KClass<T>.wrapRow() = { res: ResultSet ->
+    val kClass = this
+    val ctor = kClass.primaryConstructor!!
+    val properties = ctor.parameters
+    val values = properties.map { res.extractValue(it.type.classifier!!, it.name!!) }
+    ctor.call(*values.toTypedArray())
+}
+
+fun <T : Any> KClass<T>.wrapValue(name: String): (ResultSet) -> T = { res: ResultSet ->
+    res.extractValue(this, name) as T
+}
+
+private fun ResultSet.extractValue(property: KClassifier, name: String) = when (property) {
+    DateTime::class -> DateTime(getTimestamp(name))
+    BigDecimal::class -> getBigDecimal(name)
+    Boolean::class -> getBoolean(name)
+    Double::class -> getDouble(name)
+    Float::class -> getFloat(name)
+    Int::class -> getInt(name)
+    Short::class -> getShort(name)
+    Long::class -> getLong(name)
+    else -> getObject(name)
+}
