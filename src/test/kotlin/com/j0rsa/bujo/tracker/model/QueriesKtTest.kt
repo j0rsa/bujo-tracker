@@ -38,7 +38,9 @@ internal class QueriesKtTest : TransactionalTest {
               9223372036854775807 l,
               10 bigDecimal
               """.trimIndent()
-                .exec(transform = TestData::class.fromRow()).first()
+                .exec()
+                .toEntities<TestData>()
+                .first()
             assertThat(result).isEqualTo(expected)
         }
     }
@@ -50,7 +52,8 @@ internal class QueriesKtTest : TransactionalTest {
             select
               uuid_generate_v4() id
               """.trimIndent()
-                .exec(transform = UUID::class.fromValue("id")).first()
+                .exec()
+                .getValue<UUID>("id")
             println(result)
             assertThat(result).isNotNull()
         }

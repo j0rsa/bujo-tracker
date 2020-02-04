@@ -7,19 +7,28 @@ import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
 import kotlin.reflect.KClass
-import kotlin.reflect.KClassifier
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.jvmErasure
 
-fun <T> String.exec(vararg params: Param, transform: (ResultSet) -> T): ArrayList<T> {
-    val statement = currentTransaction().connection.prepareStatement(this)
-    params.forEachIndexed { index, param ->
-        statement.setParam(param, index + 1)
+fun String.exec(vararg params: Param): ResultSet? =
+    with(currentTransaction().connection.prepareStatement(this)) {
+        params.forEachIndexed { index, param ->
+            this.setParam(param, index + 1)
+        }
+        this.executeQuery()
     }
+
+inline fun <reified T : Any> ResultSet?.toEntities(): ArrayList<T> =
+    this.map { it.toDataClass(T::class) }
+
+inline fun <reified T : Any> ResultSet?.getValue(name: String): ArrayList<T> =
+    this.map { it.toValue(T::class, name) }
+
+fun <T> ResultSet?.map(transformer: (ResultSet) -> T): ArrayList<T> {
     val result = arrayListOf<T>()
-    val resultSet = statement.executeQuery()
-    resultSet?.use {
+    this?.use {
         while (it.next()) {
-            result += transform(it)
+            result += transformer(this)
         }
     }
     return result
@@ -52,19 +61,16 @@ sealed class Param {
 fun param(value: Int): Param.IntParam = Param.IntParam(value)
 fun param(id: HabitId): Param.UUIDParam = Param.UUIDParam(id.value)
 
-fun <T : Any> KClass<T>.fromRow() = { res: ResultSet ->
-    val kClass = this
+fun <T : Any> ResultSet.toDataClass(kClass: KClass<T>): T {
     val ctor = kClass.primaryConstructor!!
     val properties = ctor.parameters
-    val values = properties.map { res.extractValue(it.type.classifier!!, it.name!!) }
-    ctor.call(*values.toTypedArray())
+    val values = properties.map { this.extractValue(it.type.jvmErasure, it.name!!) }
+    return ctor.call(*values.toTypedArray())
 }
 
-fun <T : Any> KClass<T>.fromValue(name: String): (ResultSet) -> T = { res: ResultSet ->
-    res.extractValue(this, name) as T
-}
+fun <T : Any> ResultSet.toValue(kClass: KClass<T>, name: String): T = this.extractValue(kClass, name) as T
 
-private fun ResultSet.extractValue(property: KClassifier, name: String) = when (property) {
+private fun<T: Any> ResultSet.extractValue(property: KClass<T>, name: String) = when (property) {
     DateTime::class -> DateTime(getTimestamp(name))
     BigDecimal::class -> getBigDecimal(name)
     Boolean::class -> getBoolean(name)
@@ -74,6 +80,5 @@ private fun ResultSet.extractValue(property: KClassifier, name: String) = when (
     Short::class -> getShort(name)
     Long::class -> getLong(name)
     String::class -> getString(name)
-    UUID::class -> getObject(name, UUID::class.java)
-    else -> getObject(name)
+    else -> getObject(name, property.java)
 }
