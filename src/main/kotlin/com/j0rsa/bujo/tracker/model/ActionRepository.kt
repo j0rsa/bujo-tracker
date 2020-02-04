@@ -53,7 +53,7 @@ object ActionRepository {
                 setInt(2, numberOfRepetitions)
             }, streakRecord())
 
-    fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): ArrayList<BigDecimal> =
+    fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
         """
             WITH
               groups(minDate, maxDate, weekMinusRow) AS (
@@ -75,11 +75,13 @@ object ActionRepository {
             HAVING (DATE_PART('day', now() - MAX(maxDate))/7)::int in (0, 1)
                 OR (DATE_PART('day', MIN(minDate) - now())/7)::int in (0, 1)
             ORDER BY endDate DESC
+            LIMIT 1
         """.trimIndent()
             .exec({
                 setObject(1, habitId.value)
                 setInt(2, numberOfRepetitions)
-            }, {it.getBigDecimal("streak")})
+            }, { it.getBigDecimal("streak") })
+            .firstOrNull()
 
     fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
         ("""
@@ -108,7 +110,7 @@ object ActionRepository {
                 setInt(2, numberOfRepetitions)
             }, streakRecord())
 
-    fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): ArrayList<BigDecimal> =
+    fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
         ("""
             WITH
               groups(minDate, maxDate, dateMinusRow) AS (
@@ -136,7 +138,8 @@ object ActionRepository {
             .exec({
                 setObject(1, habitId.value)
                 setInt(2, numberOfRepetitions)
-            }, {it.getBigDecimal("streak")})
+            }, { it.getBigDecimal("streak") })
+            .firstOrNull()
 
     private fun streakRecord() = { res: ResultSet ->
         StreakRecord(

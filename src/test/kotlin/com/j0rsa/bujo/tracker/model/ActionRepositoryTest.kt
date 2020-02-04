@@ -176,8 +176,8 @@ internal class ActionRepositoryTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = yesterday.minusDays(1))
 
             val result = ActionRepository.findCurrentStreakForDay(habit.idValue(), 1)
-            assertThat(result).hasSize(1)
-            assertThat(result.first()).isEqualTo(BigDecimal(2))
+            assertThat(result).isNotNull()
+            assertThat(result).isEqualTo(BigDecimal(2))
         }
     }
 
@@ -190,8 +190,8 @@ internal class ActionRepositoryTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = tomorrow.plusDays(1))
 
             val result = ActionRepository.findCurrentStreakForDay(habit.idValue(), 1)
-            assertThat(result).hasSize(1)
-            assertThat(result.first()).isEqualTo(BigDecimal(2))
+            assertThat(result).isNotNull()
+            assertThat(result).isEqualTo(BigDecimal(2))
         }
     }
 
@@ -204,7 +204,7 @@ internal class ActionRepositoryTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = dayBeforeYesterday.minusDays(1))
 
             val result = ActionRepository.findCurrentStreakForDay(habit.idValue(), 1)
-            assertThat(result).isEmpty()
+            assertThat(result).isNull()
         }
     }
 
@@ -217,8 +217,8 @@ internal class ActionRepositoryTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = previousWeek.minusWeeks(1))
 
             val result = ActionRepository.findCurrentStreakForWeek(habit.idValue(), 1)
-            assertThat(result).hasSize(1)
-            assertThat(result.first()).isEqualTo(BigDecimal(2))
+            assertThat(result).isNotNull()
+            assertThat(result).isEqualTo(BigDecimal(2))
         }
     }
 
@@ -231,8 +231,8 @@ internal class ActionRepositoryTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = nextWeek.plusWeeks(1))
 
             val result = ActionRepository.findCurrentStreakForWeek(habit.idValue(), 1)
-            assertThat(result).hasSize(1)
-            assertThat(result.first()).isEqualTo(BigDecimal(2))
+            assertThat(result).isNotNull()
+            assertThat(result).isEqualTo(BigDecimal(2))
         }
     }
 
@@ -245,7 +245,7 @@ internal class ActionRepositoryTest : TransactionalTest {
             insertDefaultAction(user, habit = habit, created = notPreviousWeek.minusWeeks(1))
 
             val result = ActionRepository.findCurrentStreakForWeek(habit.idValue(), 1)
-            assertThat(result).isEmpty()
+            assertThat(result).isNull()
         }
     }
 }
