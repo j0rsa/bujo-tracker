@@ -6,7 +6,6 @@ import java.math.BigDecimal
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.full.primaryConstructor
@@ -53,7 +52,7 @@ sealed class Param {
 fun param(value: Int): Param.IntParam = Param.IntParam(value)
 fun param(id: HabitId): Param.UUIDParam = Param.UUIDParam(id.value)
 
-fun <T : Any> KClass<T>.wrapRow() = { res: ResultSet ->
+fun <T : Any> KClass<T>.fromRow() = { res: ResultSet ->
     val kClass = this
     val ctor = kClass.primaryConstructor!!
     val properties = ctor.parameters
@@ -61,7 +60,7 @@ fun <T : Any> KClass<T>.wrapRow() = { res: ResultSet ->
     ctor.call(*values.toTypedArray())
 }
 
-fun <T : Any> KClass<T>.wrapValue(name: String): (ResultSet) -> T = { res: ResultSet ->
+fun <T : Any> KClass<T>.fromValue(name: String): (ResultSet) -> T = { res: ResultSet ->
     res.extractValue(this, name) as T
 }
 
@@ -74,5 +73,7 @@ private fun ResultSet.extractValue(property: KClassifier, name: String) = when (
     Int::class -> getInt(name)
     Short::class -> getShort(name)
     Long::class -> getLong(name)
+    String::class -> getString(name)
+    UUID::class -> getObject(name, UUID::class.java)
     else -> getObject(name)
 }

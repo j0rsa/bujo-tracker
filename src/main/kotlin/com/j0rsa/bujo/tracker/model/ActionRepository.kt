@@ -49,7 +49,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = StreakRecord::class.wrapRow()
+                transform = StreakRecord::class.fromRow()
             )
 
     fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
@@ -79,7 +79,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = BigDecimal::class.wrapValue("streak")
+                transform = BigDecimal::class.fromValue("streak")
             ).firstOrNull()
 
     fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
@@ -107,7 +107,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = StreakRecord::class.wrapRow()
+                transform = StreakRecord::class.fromRow()
             )
 
     fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
@@ -138,7 +138,7 @@ object ActionRepository {
             .exec(
                 param(habitId),
                 param(numberOfRepetitions),
-                transform = BigDecimal::class.wrapValue("streak")
+                transform = BigDecimal::class.fromValue("streak")
             )
             .firstOrNull()
 }
