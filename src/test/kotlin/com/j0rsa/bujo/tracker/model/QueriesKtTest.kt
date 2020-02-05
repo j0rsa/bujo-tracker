@@ -3,8 +3,8 @@ package com.j0rsa.bujo.tracker.model
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
-import com.j0rsa.bujo.tracker.model.Result.BigDecimalParam
-import com.j0rsa.bujo.tracker.model.Result.DateTimeParam
+import com.j0rsa.bujo.tracker.model.ResultColumn.BigDecimalColumn
+import com.j0rsa.bujo.tracker.model.ResultColumn.DateTimeColumn
 import org.joda.time.DateTime
 import org.junit.jupiter.api.Test
 
@@ -53,7 +53,7 @@ internal class QueriesKtTest : TransactionalTest {
               """.trimIndent()
                 .exec()
                 .map {
-                    BigDecimalParam("bigDecimal").get(it) to DateTimeParam("date").get(it)
+                    BigDecimalColumn("bigDecimal").get(it) to DateTimeColumn("date").get(it)
                 }
                 .first()
             assertThat(result).isNotNull()
@@ -77,7 +77,7 @@ internal class QueriesKtTest : TransactionalTest {
               10 bigDecimal
               """.trimIndent()
                 .exec()
-                .map(BigDecimalParam("bigDecimal").get())
+                .map(BigDecimalColumn("bigDecimal").get())
                 .first()
             assertThat(result).isNotNull()
             assertThat(result).isEqualTo(BigDecimal.TEN)
@@ -105,7 +105,7 @@ internal class QueriesKtTest : TransactionalTest {
                 .map {
                     TestData2(
                         testData = it.toEntity(),
-                        id = Result.UUIDParam("id").get(it)
+                        id = ResultColumn.UUIDColumn("id").get(it)
                     )
                 }
                 .first()

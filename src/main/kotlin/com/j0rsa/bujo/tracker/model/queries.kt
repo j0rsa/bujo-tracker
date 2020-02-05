@@ -63,17 +63,17 @@ sealed class Param {
 fun param(value: Int): Param.IntParam = Param.IntParam(value)
 fun param(id: HabitId): Param.UUIDParam = Param.UUIDParam(id.value)
 
-sealed class Result<T> {
-    data class BooleanParam(val name: String) : Result<Boolean>()
-    data class IntParam(val name: String) : Result<Int>()
-    data class StringParam(val name: String) : Result<String>()
-    data class UUIDParam(val name: String) : Result<UUID>()
-    data class DoubleParam(val name: String) : Result<Double>()
-    data class FloatParam(val name: String) : Result<Float>()
-    data class LongParam(val name: String) : Result<Long>()
-    data class ShortParam(val name: String) : Result<Short>()
-    data class BigDecimalParam(val name: String) : Result<BigDecimal>()
-    data class DateTimeParam(val name: String) : Result<DateTime>()
+sealed class ResultColumn<T> {
+    data class BooleanColumn(val name: String) : ResultColumn<Boolean>()
+    data class IntColumn(val name: String) : ResultColumn<Int>()
+    data class StringColumn(val name: String) : ResultColumn<String>()
+    data class UUIDColumn(val name: String) : ResultColumn<UUID>()
+    data class DoubleColumn(val name: String) : ResultColumn<Double>()
+    data class FloatColumn(val name: String) : ResultColumn<Float>()
+    data class LongColumn(val name: String) : ResultColumn<Long>()
+    data class ShortColumn(val name: String) : ResultColumn<Short>()
+    data class BigDecimalColumn(val name: String) : ResultColumn<BigDecimal>()
+    data class DateTimeColumn(val name: String) : ResultColumn<DateTime>()
 }
 
 fun <T : Any> ResultSet.toDataClass(kClass: KClass<T>): T {
@@ -87,23 +87,23 @@ fun <T : Any> ResultSet.toDataClass(kClass: KClass<T>): T {
 fun <T : Any> ResultSet.toValue(kClass: KClass<T>, name: String): T = this.extractValue(kClass, name) as T
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
-inline fun <reified T> Result<T>.get() = { res: ResultSet ->
+inline fun <reified T> ResultColumn<T>.get() = { res: ResultSet ->
     this.get(res)
 }
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
-inline fun <reified T> Result<T>.get(res: ResultSet) =
+inline fun <reified T> ResultColumn<T>.get(res: ResultSet) =
     when (this) {
-        is Result.BooleanParam -> res.getBoolean(name)
-        is Result.IntParam -> res.getInt(name)
-        is Result.StringParam -> res.getString(name)
-        is Result.UUIDParam -> res.getObject(name, UUID::class.java)
-        is Result.DoubleParam -> res.getDouble(name)
-        is Result.FloatParam -> res.getFloat(name)
-        is Result.LongParam -> res.getLong(name)
-        is Result.ShortParam -> res.getShort(name)
-        is Result.BigDecimalParam -> res.getBigDecimal(name)
-        is Result.DateTimeParam -> DateTime(res.getTimestamp(name))
+        is ResultColumn.BooleanColumn -> res.getBoolean(name)
+        is ResultColumn.IntColumn -> res.getInt(name)
+        is ResultColumn.StringColumn -> res.getString(name)
+        is ResultColumn.UUIDColumn -> res.getObject(name, UUID::class.java)
+        is ResultColumn.DoubleColumn -> res.getDouble(name)
+        is ResultColumn.FloatColumn -> res.getFloat(name)
+        is ResultColumn.LongColumn -> res.getLong(name)
+        is ResultColumn.ShortColumn -> res.getShort(name)
+        is ResultColumn.BigDecimalColumn -> res.getBigDecimal(name)
+        is ResultColumn.DateTimeColumn -> DateTime(res.getTimestamp(name))
     } as T
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
