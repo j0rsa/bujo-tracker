@@ -193,6 +193,7 @@ data class BaseActionRow(
         view.id
     )
 
+    @Suppress("IMPLICIT_CAST_TO_ANY")
     inline operator fun <reified T> getValue(withBaseActionRow: WithBaseActionRow, property: KProperty<*>): T {
         return when (property.name) {
             WithBaseActionRow::description::name.get() -> this.description
