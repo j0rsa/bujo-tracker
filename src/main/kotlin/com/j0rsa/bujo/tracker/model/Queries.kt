@@ -19,7 +19,7 @@ fun String.exec(vararg params: Param): ResultSet? =
     }
 
 inline fun <reified T : Any> ResultSet?.toEntities(): ArrayList<T> =
-    this.map { it.toDataClass(T::class) }
+    this.map { it.toEntity<T>() }
 
 inline fun <reified T : Any> ResultSet.toEntity(): T = this.toDataClass(T::class)
 
