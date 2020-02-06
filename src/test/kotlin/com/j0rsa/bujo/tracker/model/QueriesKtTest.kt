@@ -53,7 +53,7 @@ internal class QueriesKtTest : TransactionalTest {
               """.trimIndent()
                 .exec()
                 .map {
-                    BigDecimalColumn("bigDecimal").get(it) to DateTimeColumn("date").get(it)
+                    BigDecimalColumn("bigDecimal") from it to (DateTimeColumn("date") from it)
                 }
                 .first()
             assertThat(result).isNotNull()
@@ -77,7 +77,7 @@ internal class QueriesKtTest : TransactionalTest {
               10 bigDecimal
               """.trimIndent()
                 .exec()
-                .map(BigDecimalColumn("bigDecimal").get())
+                .get(BigDecimalColumn("bigDecimal"))
                 .first()
             assertThat(result).isNotNull()
             assertThat(result).isEqualTo(BigDecimal.TEN)
@@ -105,7 +105,7 @@ internal class QueriesKtTest : TransactionalTest {
                 .map {
                     TestData2(
                         testData = it.toEntity(),
-                        id = ResultColumn.UUIDColumn("id").get(it)
+                        id = ResultColumn.UUIDColumn("id") from it
                     )
                 }
                 .first()

@@ -86,13 +86,10 @@ fun <T : Any> ResultSet.toDataClass(kClass: KClass<T>): T {
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> ResultSet.toValue(kClass: KClass<T>, name: String): T = this.extractValue(kClass, name) as T
 
-@Suppress("IMPLICIT_CAST_TO_ANY")
-inline fun <reified T> ResultColumn<T>.get() = { res: ResultSet ->
-    this.get(res)
-}
+inline fun <reified T> ResultSet?.get(column: ResultColumn<T>) = this.map { column from it }
 
 @Suppress("IMPLICIT_CAST_TO_ANY")
-inline fun <reified T> ResultColumn<T>.get(res: ResultSet) =
+inline infix fun <reified T> ResultColumn<T>.from(res: ResultSet) =
     when (this) {
         is ResultColumn.BooleanColumn -> res.getBoolean(name)
         is ResultColumn.IntColumn -> res.getInt(name)
