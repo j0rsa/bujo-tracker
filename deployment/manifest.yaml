@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: bujo-tracker
-          image: j0rsa/bujo-tracker:815a6ce
+          image: j0rsa/bujo-tracker:latest
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
