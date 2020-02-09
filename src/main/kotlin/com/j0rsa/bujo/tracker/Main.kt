@@ -3,6 +3,7 @@ package com.j0rsa.bujo.tracker
 import com.j0rsa.bujo.tracker.handler.ActionHandler
 import com.j0rsa.bujo.tracker.handler.HabitHandler
 import com.j0rsa.bujo.tracker.handler.TagHandler
+import com.j0rsa.bujo.tracker.handler.UserHandler
 import com.j0rsa.bujo.tracker.model.*
 import org.http4k.server.Http4kServer
 import org.apache.logging.log4j.core.config.Configurator
@@ -55,7 +56,8 @@ fun startApp(): Http4kServer {
                     Method.DELETE to ActionHandler.delete()
                 ),
                 "/habit/{id}" bind Method.POST to ActionHandler.createWithHabit()
-            )
+            ),
+            "/users" bind Method.POST to UserHandler.createOrUpdateUser()
         )
     )
 

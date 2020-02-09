@@ -8,7 +8,7 @@ import com.j0rsa.bujo.tracker.handler.RequestLens.habitInfoLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.multipleHabitsLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.response
-import com.j0rsa.bujo.tracker.handler.RequestLens.userLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
 import com.j0rsa.bujo.tracker.model.*
 import com.j0rsa.bujo.tracker.model.Period.Day
 import com.j0rsa.bujo.tracker.model.Period.Week
@@ -29,7 +29,7 @@ object HabitHandler {
 
     fun delete(): (Request) -> Response = { req: Request ->
         val result = TransactionManager.tx {
-            HabitService.deleteOne(habitIdLens(req), userLens(req))
+            HabitService.deleteOne(habitIdLens(req), userIdLens(req))
         }
         when (result) {
             is Either.Left -> response(result)
@@ -39,7 +39,7 @@ object HabitHandler {
 
     fun findOne() = { req: Request ->
         val result = TransactionManager.tx {
-            HabitService.findOneBy(habitIdLens(req), userLens(req))
+            HabitService.findOneBy(habitIdLens(req), userIdLens(req))
         }.map {
             val streak = findStreaks(it)
             val habitInfo = HabitInfoView(it.toView(), streak)
@@ -60,7 +60,7 @@ object HabitHandler {
 
     fun findAll() = { req: Request ->
         val habits = TransactionManager.tx {
-            HabitService.findAll(userLens(req))
+            HabitService.findAll(userIdLens(req))
         }.map {
             HabitsInfoView(it.toView(), findCurrentStreaks(it))
         }
@@ -79,12 +79,12 @@ object HabitHandler {
         is Either.Right -> result.b
     }
 
-    private fun Request.toHabitDto() = HabitRow(habitLens(this), userLens(this))
+    private fun Request.toHabitDto() = HabitRow(habitLens(this), userIdLens(this))
 }
 
-data class HabitView(
+data class Habit(
     val name: String,
-    val tagList: List<TagRow>,
+    val tags: List<Tag>,
     val numberOfRepetitions: Int,
     val period: Period,
     val quote: String?,
@@ -92,14 +92,15 @@ data class HabitView(
     val startFrom: DateTime?,
     val id: HabitId? = null
 )
+typealias HabitView = Habit
 
 data class HabitsInfoView(
-    val habitView: HabitView,
+    val habit: Habit,
     val currentStreak: BigDecimal = BigDecimal.ZERO
 )
 
 data class HabitInfoView(
-    val habitView: HabitView,
+    val habit: Habit,
     val streakRow: StreakRow
 )
 

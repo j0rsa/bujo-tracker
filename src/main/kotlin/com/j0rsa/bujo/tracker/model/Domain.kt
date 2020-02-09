@@ -2,6 +2,7 @@ package com.j0rsa.bujo.tracker.model
 
 import com.j0rsa.bujo.tracker.handler.ActionView
 import com.j0rsa.bujo.tracker.handler.HabitView
+import com.j0rsa.bujo.tracker.handler.TagRow
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
@@ -10,8 +11,12 @@ import java.util.*
 import kotlin.reflect.KProperty
 
 object Users : UUIDTable("users", "id") {
-    val name = varchar("name", 50)
-    val email = varchar("email", 50).index()
+    val name = varchar("name", 50).nullable()
+    val telegramId = long("telegram_id").uniqueIndex().nullable()
+    val email = varchar("email", 50).uniqueIndex().nullable()
+    val firstName = varchar("first_name", 50).nullable()
+    val lastName = varchar("last_name", 50).nullable()
+    val language = varchar("language", 5).nullable()
     val otp = varchar("otp", 50).nullable()
     val created = datetime("created").clientDefault { DateTime.now() }.nullable()
 }
@@ -20,7 +25,11 @@ class User(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<User>(Users)
 
     var name by Users.name
+    var telegramId by Users.telegramId
     var email by Users.email
+    var firstName by Users.firstName
+    var lastName by Users.lastName
+    var language by Users.language
     var otp by Users.otp
     fun idValue() = UserId(id.value)
 }
@@ -86,16 +95,16 @@ data class HabitRow(
     val startFrom: DateTime? = null,
     val id: HabitId? = null
 ) {
-    constructor(habitView: HabitView, userId: UserId) : this(
-        habitView.name,
-        habitView.tagList,
+    constructor(habit: HabitView, userId: UserId) : this(
+        habit.name,
+        habit.tags,
         userId,
-        habitView.numberOfRepetitions,
-        habitView.period,
-        habitView.quote,
-        habitView.bad,
-        habitView.startFrom,
-        habitView.id
+        habit.numberOfRepetitions,
+        habit.period,
+        habit.quote,
+        habit.bad,
+        habit.startFrom,
+        habit.id
     )
 
     fun toView(): HabitView = HabitView(
@@ -127,11 +136,6 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
 
     fun idValue() = TagId(id.value)
 }
-
-data class TagRow(
-    val name: String,
-    val id: TagId? = null
-)
 
 object ActionTags : Table("action-tags") {
     val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE).primaryKey(0)
@@ -189,7 +193,7 @@ data class BaseActionRow(
     constructor(view: ActionView, userId: UserId) : this(
         view.description,
         userId,
-        view.tagList,
+        view.tags,
         view.id
     )
 

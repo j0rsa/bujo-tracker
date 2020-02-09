@@ -26,13 +26,15 @@ internal interface TransactionalTest {
 
     companion object {
         lateinit var user: User
+        lateinit var telegramUser: User
         var userId: UserId by Delegates.notNull()
         @BeforeAll
         @JvmStatic
         fun beforeAll() {
             TransactionManager.tx {
                 createSchema()
-                user = User.all().firstOrNull() ?: defaultUser()
+                user = User.find { Users.telegramId.isNull() }.firstOrNull() ?: defaultUser()
+                telegramUser = UserRepository.findOneByTelegramId(1) ?: defaultTelegramUser()
                 userId = user.idValue()
             }
         }

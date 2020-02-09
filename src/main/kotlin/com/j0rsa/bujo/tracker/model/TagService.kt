@@ -5,6 +5,7 @@ import arrow.core.Right
 import arrow.core.Left
 import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.TrackerError
+import com.j0rsa.bujo.tracker.handler.TagRow
 import org.jetbrains.exposed.sql.*
 
 object TagService {
