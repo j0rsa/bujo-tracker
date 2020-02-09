@@ -6,7 +6,7 @@ metadata:
   labels:
     app: bujo_tracker
 data:
-  DB_URL: "jdbc:postgresql://postgres.db.svc.cluster.local:5432/bujo"
+  DB_URL: "jdbc:postgresql://postgres.db/bujo"
   DB_DRIVER: "org.postgresql.Driver"
   DB_USER: "bujo_user"
   DB_MAX_POOL: "10"
