@@ -57,7 +57,10 @@ fun startApp(): Http4kServer {
                 ),
                 "/habit/{id}" bind Method.POST to ActionHandler.createWithHabit()
             ),
-            "/users" bind Method.POST to UserHandler.createOrUpdateUser()
+            "/users" bind routes(
+                "/{telegram_id}" bind Method.GET to UserHandler.findUser(),
+                "/" bind Method.POST to UserHandler.createOrUpdateUser()
+            )
         )
     )
 

@@ -17,7 +17,7 @@ fun defaultTelegramUser() = User.new {
 }
 
 fun defaultUserInfo(id: Long = 1L, firstName: String = "testTelegramUser") = UserInfo(
-    id = id,
+    telegramId = id,
     firstName = firstName
 )
 

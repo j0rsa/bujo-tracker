@@ -1,8 +1,12 @@
 package com.j0rsa.bujo.tracker.handler
 
+import arrow.core.Either
 import com.j0rsa.bujo.tracker.TransactionManager.tx
+import com.j0rsa.bujo.tracker.handler.RequestLens.response
+import com.j0rsa.bujo.tracker.handler.RequestLens.telegramUserIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.telegramUserLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.userIdResponseLens
+import com.j0rsa.bujo.tracker.model.UserId
 import com.j0rsa.bujo.tracker.model.UserService
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -12,9 +16,16 @@ object UserHandler {
     fun createOrUpdateUser() = { req: Request ->
         val user = telegramUserLens(req)
         tx {
-            UserService.findOneBy(user.id)
+            UserService.findOneBy(user.telegramId)
                 ?.let(updated(user))
                 ?: create(user)
+        }
+    }
+
+    fun findUser() = { req: Request ->
+        when (val result = tx { UserService.findOne(telegramUserIdLens(req)) }) {
+            is Either.Left -> response(result)
+            is Either.Right -> telegramUserLens(result.b, Response(Status.OK))
         }
     }
 
@@ -30,7 +41,8 @@ object UserHandler {
 }
 
 data class User(
-    val id: Long,
+    val id: UserId? = null,
+    val telegramId: Long,
     val firstName: String = "",
     val lastName: String = "",
     val language: String = ""

@@ -2,7 +2,6 @@ package com.j0rsa.bujo.tracker.handler
 
 import arrow.core.Either
 import com.j0rsa.bujo.tracker.TrackerError
-import com.j0rsa.bujo.tracker.TransactionManager
 import com.j0rsa.bujo.tracker.TransactionManager.tx
 import com.j0rsa.bujo.tracker.handler.RequestLens.actionIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.actionLens

@@ -11,6 +11,7 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Header
 import org.http4k.lens.Path
+import org.http4k.lens.long
 import org.http4k.lens.uuid
 
 object RequestLens {
@@ -21,6 +22,7 @@ object RequestLens {
 
     val userIdLens = Header.uuid().map(::UserId).required("X-Auth-Id")
     val userIdResponseLens = Body.auto<UserId>().toLens()
+    val telegramUserIdLens = Path.long().of("telegram_id")
     val telegramUserLens = Body.auto<User>().toLens()
 
     val tagLens = Body.auto<Tag>().toLens()

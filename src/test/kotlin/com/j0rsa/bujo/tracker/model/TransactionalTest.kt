@@ -34,7 +34,7 @@ internal interface TransactionalTest {
             TransactionManager.tx {
                 createSchema()
                 user = User.find { Users.telegramId.isNull() }.firstOrNull() ?: defaultUser()
-                telegramUser = UserRepository.findOneByTelegramId(1) ?: defaultTelegramUser()
+                telegramUser = UserRepository.findOneByTelegramId(1).firstOrNull() ?: defaultTelegramUser()
                 userId = user.idValue()
             }
         }

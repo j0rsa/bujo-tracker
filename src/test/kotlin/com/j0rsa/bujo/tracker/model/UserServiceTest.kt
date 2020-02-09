@@ -1,5 +1,6 @@
 package com.j0rsa.bujo.tracker.model
 
+import arrow.core.Either
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
@@ -42,6 +43,26 @@ internal class UserServiceTest : TransactionalTest {
             assertThat(result).isNotNull()
             assertThat(result!!.telegramId).isEqualTo(1L)
             assertThat(result.firstName).isEqualTo("updatedDefaultUserInfo")
+        }
+    }
+
+    @Test
+    fun testFindOneWhenNotExist() {
+        tempTx {
+            val result = UserService.findOne(2L)
+
+            assertThat(result.isLeft())
+            assertThat(isNotFound(result))
+        }
+    }
+
+    @Test
+    fun testFindOneWhenExist() {
+        tempTx {
+            val result = UserService.findOne(1L)
+
+            assertThat(result.isRight())
+            assertThat((result as Either.Right).b.id).isEqualTo(telegramUser.idValue())
         }
     }
 }
