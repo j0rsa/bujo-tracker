@@ -88,7 +88,7 @@ compileTestKotlin.kotlinOptions.jvmTarget = "1.8"
 
 val hash = Runtime.getRuntime().exec("git rev-parse --short HEAD").inputStream.reader().use { it.readText() }.trim()
 val projectTag = hash
-val baseDockerName = "docker.pkg.github.com/j0rsa/bujo-tracker/${project.name}"
+val baseDockerName = "j0rsa/${project.name}"
 val taggedDockerName = "$baseDockerName:$projectTag"
 
 val baseDockerFile = file("$projectDir/Dockerfile")

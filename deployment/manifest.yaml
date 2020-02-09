@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: bujo-tracker
-          image: docker.pkg.github.com/j0rsa/bujo-tracker/tracker:d645fb4
+          image: j0rsa/bujo-tracker:815a6ce
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
