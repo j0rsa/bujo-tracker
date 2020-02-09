@@ -4,7 +4,6 @@ import com.typesafe.config.ConfigFactory
 import io.github.config4k.extract
 
 data class AppConfig(
-    val logConfig: String,
     val db: DbConfig,
     val port: Int
 )

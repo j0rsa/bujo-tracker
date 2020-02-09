@@ -6,14 +6,14 @@ import com.j0rsa.bujo.tracker.handler.TagHandler
 import com.j0rsa.bujo.tracker.handler.UserHandler
 import com.j0rsa.bujo.tracker.model.*
 import org.http4k.server.Http4kServer
-import org.apache.logging.log4j.core.config.Configurator
 import org.http4k.core.*
 import org.http4k.server.Jetty
-import org.slf4j.LoggerFactory
 import org.http4k.filter.ServerFilters.CatchLensFailure
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.http4k.server.asServer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 fun main() {
     val server = startApp()
@@ -21,8 +21,6 @@ fun main() {
 }
 
 fun startApp(): Http4kServer {
-    Configurator.initialize(null, Config.app.logConfig)
-
     val logger = LoggerFactory.getLogger("main")
 
     TransactionManager.tx {
