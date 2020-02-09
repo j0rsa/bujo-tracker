@@ -2,7 +2,6 @@ package com.j0rsa.bujo.tracker.handler
 
 import arrow.core.Either
 import com.j0rsa.bujo.tracker.TrackerError
-import com.j0rsa.bujo.tracker.TrackerJackson.auto
 import com.j0rsa.bujo.tracker.model.ActionId
 import com.j0rsa.bujo.tracker.model.HabitId
 import com.j0rsa.bujo.tracker.model.UserId
@@ -13,6 +12,7 @@ import org.http4k.lens.Header
 import org.http4k.lens.Path
 import org.http4k.lens.long
 import org.http4k.lens.uuid
+import org.http4k.format.Gson.auto
 
 object RequestLens {
     val habitInfoLens = Body.auto<HabitInfoView>().toLens()
