@@ -2,6 +2,7 @@ package com.j0rsa.bujo.tracker.model
 
 import com.j0rsa.bujo.tracker.handler.TagRow
 import com.j0rsa.bujo.tracker.handler.UserInfo
+import com.j0rsa.bujo.tracker.handler.ValueRow
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.insert
 import org.joda.time.DateTime
@@ -56,12 +57,14 @@ fun defaultActionRow(
     habitId
 )
 
+fun defaultValue(type: ValueType = ValueType.Mood, value: String = "testValue") = ValueRow(type, value)
 fun defaultBaseActionRow(
     userId: UserId,
     name: String = "testTagAction",
     tags: List<TagRow> = listOf(defaultTagRow()),
-    id: ActionId? = null
-) = BaseActionRow(name, userId, tags, id)
+    id: ActionId? = null,
+    values: List<ValueRow> = emptyList()
+) = BaseActionRow(name, userId, tags, id, values)
 
 fun defaultHabit(
     habitUser: User,

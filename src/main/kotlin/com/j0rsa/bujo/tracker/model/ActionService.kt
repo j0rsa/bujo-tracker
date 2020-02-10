@@ -14,27 +14,33 @@ object ActionService {
     fun create(row: ActionRow): Either<TrackerError, ActionId> {
         val foundUser = UserRepository.findOne(row.userId)!!
         val foundHabits = HabitRepository.findOne(row.userId, row.habitId!!)
-        val allTags = TagService.createTagsIfNotExist(foundUser, row.tags)
 
         return when (foundHabits.size) {
             0 -> Left(NotFound)
-            1 -> Right(Action.new(ActionId.randomValue().value) {
-                description = row.description
-                user = foundUser
-                tags = SizedCollection(allTags)
-                habit = foundHabits.first()
-            }.idValue())
+            1 -> {
+                val tags = TagService.createTagsIfNotExist(foundUser, row.tags)
+                val values = ValueService.create(row.values)
+                Right(Action.new(ActionId.randomValue().value) {
+                    description = row.description
+                    user = foundUser
+                    this.values = SizedCollection(values)
+                    this.tags = SizedCollection(tags)
+                    habit = foundHabits.first()
+                }.idValue())
+            }
             else -> Left(SyStemError("Found too many records"))
         }
     }
 
     fun create(row: BaseActionRow): ActionId {
         val foundUser = UserRepository.findOne(row.userId)!!
-        val allTags = TagService.createTagsIfNotExist(foundUser, row.tags)
+        val tags = TagService.createTagsIfNotExist(foundUser, row.tags)
+        val values = ValueService.create(row.values)
         return Action.new(ActionId.randomValue().value) {
             description = row.description
             user = foundUser
-            tags = SizedCollection(allTags)
+            this.values = SizedCollection(values)
+            this.tags = SizedCollection(tags)
         }.idValue()
     }
 
@@ -61,6 +67,7 @@ object ActionService {
             description = row.description
             tags = SizedCollection(allTags)
         }
+        //TODO add values to update
         action.toRow()
     }
 

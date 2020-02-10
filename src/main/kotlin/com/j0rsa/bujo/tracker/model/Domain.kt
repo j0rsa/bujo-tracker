@@ -178,7 +178,8 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
         description,
         userIdValue(),
         tags.map { it.toRow() },
-        idValue()
+        idValue(),
+        values.map { it.toRow() }
     )
 
     fun idValue() = ActionId(id.value)
@@ -257,7 +258,7 @@ enum class ValueType {
 }
 
 object Values : UUIDTable("values", "id") {
-    val valueType = customEnumeration(
+    val type = customEnumeration(
         "value_type",
         "ValueTypeEnum",
         { value -> ValueType.valueOf(value as String) },
@@ -274,9 +275,11 @@ class Value(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<Value>(Values)
 
     var value by Values.value
-    var valueType by Values.valueType
+    var type by Values.type
 
     fun idValue() = ValueId(id.value)
+
+    fun toRow(): ValueRow = ValueRow(type, value)
 }
 
 fun createSchema() {

@@ -81,5 +81,7 @@ data class ActionView(
 
 data class Value(
     val type: ValueType,
-    val value: String
-)typealias ValueRow = Value
+    val value: String?
+)
+
+typealias ValueRow = Value

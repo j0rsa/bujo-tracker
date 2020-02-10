@@ -274,4 +274,18 @@ internal class ActionServiceTest : TransactionalTest {
             assertThat(result.maxStreak).isEqualTo(BigDecimal.ZERO)
         }
     }
+
+    @Test
+    fun testCreateWithValues() {
+        tempTx {
+            val defaultValue = defaultValue()
+            val actionRow = defaultBaseActionRow(userId, values = listOf(defaultValue))
+
+            val actionId = ActionService.create(actionRow)
+
+            val foundAction = ActionRepository.findById(actionId)
+            assertThat(foundAction).isNotNull()
+            assertThat(foundAction!!.toRow().values).containsOnly(defaultValue)
+        }
+    }
 }
