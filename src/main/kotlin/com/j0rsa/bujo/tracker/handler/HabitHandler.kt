@@ -90,7 +90,8 @@ data class Habit(
     val quote: String?,
     val bad: Boolean?,
     val startFrom: DateTime?,
-    val id: HabitId? = null
+    val id: HabitId? = null,
+    val values: List<ValueType> = emptyList()
 )
 typealias HabitView = Habit
 

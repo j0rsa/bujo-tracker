@@ -2,6 +2,7 @@ package com.j0rsa.bujo.tracker
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Database.Companion.connect
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -24,12 +25,18 @@ object TransactionManager {
             connectionTestQuery = "SELECT 1"
             addDataSourceProperty("statement_timeout", 60000)
         }
-    private val hikariDataSource = HikariDataSource(hikariConfig)
-    private val db: Database = connect(hikariDataSource)
+    private val dataSource = HikariDataSource(hikariConfig)
+    private val db: Database = connect(dataSource)
 
     fun currentTransaction() = ExposedTransactionManager.current()
     fun <T> tx(block: () -> T) =
         transaction(db) {
             block()
+        }
+
+    fun migrate() =
+        Flyway.configure().dataSource(TransactionManager.dataSource).load().apply {
+            //        baseline()
+            migrate()
         }
 }

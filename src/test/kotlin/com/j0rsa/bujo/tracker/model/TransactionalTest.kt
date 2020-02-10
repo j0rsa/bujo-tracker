@@ -28,9 +28,11 @@ internal interface TransactionalTest {
         lateinit var user: User
         lateinit var telegramUser: User
         var userId: UserId by Delegates.notNull()
+
         @BeforeAll
         @JvmStatic
         fun beforeAll() {
+//            TransactionManager.migrate()
             TransactionManager.tx {
                 createSchema()
                 user = User.find { Users.telegramId.isNull() }.firstOrNull() ?: defaultUser()

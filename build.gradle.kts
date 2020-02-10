@@ -29,6 +29,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.flywaydb:flyway-core:6.2.2")
     implementation("org.postgresql:postgresql:42.2.9")
     implementation("com.zaxxer:HikariCP:3.4.2")
     implementation("io.arrow-kt:arrow-fx:$arrowVersion")

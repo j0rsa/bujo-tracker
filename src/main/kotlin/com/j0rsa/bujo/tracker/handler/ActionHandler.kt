@@ -73,7 +73,13 @@ object ActionHandler {
 
 data class ActionView(
     val description: String,
-    val tags: List<Tag>,
+    val tags: List<TagRow>,
     val habitId: HabitId? = null,
-    val id: ActionId? = null
+    val id: ActionId? = null,
+    val values: List<ValueRow> = emptyList()
 )
+
+data class Value(
+    val type: ValueType,
+    val value: String
+)typealias ValueRow = Value

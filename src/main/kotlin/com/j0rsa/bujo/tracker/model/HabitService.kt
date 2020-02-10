@@ -12,11 +12,13 @@ object HabitService {
     fun create(habitRow: HabitRow): HabitId {
         val foundUser = UserRepository.findOne(habitRow.userId)!!
         val allTags = TagService.createTagsIfNotExist(foundUser, habitRow.tags)
+        val values = habitRow.values.map { it.toString() }
         val habit = Habit.new(HabitId.randomValue().value) {
             name = habitRow.name
             user = foundUser
             numberOfRepetitions = habitRow.numberOfRepetitions
             period = habitRow.period
+            this.values = values
             tags = SizedCollection(allTags)
             quote = habitRow.quote
             bad = habitRow.bad
@@ -29,10 +31,12 @@ object HabitService {
 
     private fun updateHabit(habitRow: HabitRow) = { habit: Habit ->
         val allTags = TagService.createTagsIfNotExist(habitRow.userId, habitRow.tags)
+        val values = habitRow.values.map { it.toString() }
         habit.apply {
             name = habitRow.name
             numberOfRepetitions = habitRow.numberOfRepetitions
             period = habitRow.period
+            this.values = values
             quote = habitRow.quote
             bad = habitRow.bad
             tags = SizedCollection(allTags)

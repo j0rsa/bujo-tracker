@@ -33,14 +33,16 @@ fun defaultHabitRow(
     userId: UserId,
     name: String = "testHabit",
     tags: List<TagRow> = listOf(defaultTagRow()),
-    id: HabitId? = null
+    id: HabitId? = null,
+    values: List<ValueType> = emptyList()
 ) = HabitRow(
     name,
     tags,
     userId,
     1,
     Period.Day,
-    id = id
+    id = id,
+    values = values
 )
 
 fun defaultActionRow(
@@ -63,15 +65,17 @@ fun defaultBaseActionRow(
 
 fun defaultHabit(
     habitUser: User,
-    tagList: List<Tag> = listOf(), habitName: String = "testHabit"
-) =
-    Habit.new(HabitId.randomValue().value) {
-        name = habitName
-        user = habitUser
-        numberOfRepetitions = 1
-        period = Period.Day
-        tags = SizedCollection(tagList)
-    }
+    tagList: List<Tag> = listOf(),
+    habitName: String = "testHabit",
+    values: List<ValueType> = emptyList()
+) = Habit.new(HabitId.randomValue().value) {
+    name = habitName
+    user = habitUser
+    numberOfRepetitions = 1
+    period = Period.Day
+    this.values = values.map { it.toString() }
+    tags = SizedCollection(tagList)
+}
 
 fun defaultAction(
     user: User,

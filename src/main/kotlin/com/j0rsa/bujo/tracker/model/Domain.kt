@@ -3,9 +3,11 @@ package com.j0rsa.bujo.tracker.model
 import com.j0rsa.bujo.tracker.handler.ActionView
 import com.j0rsa.bujo.tracker.handler.HabitView
 import com.j0rsa.bujo.tracker.handler.TagRow
+import com.j0rsa.bujo.tracker.handler.ValueRow
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
+import org.postgresql.util.PGobject
 import java.math.BigDecimal
 import java.util.*
 import kotlin.reflect.KProperty
@@ -48,9 +50,10 @@ object Habits : UUIDTable("habits", "id") {
     val bad = bool("bad").default(false).nullable()
     val startFrom = datetime("startFrom").clientDefault { DateTime.now() }.nullable()
     val created = datetime("created").clientDefault { DateTime.now() }.nullable()
+    val values = arrayOfString("values")
 }
 
-object HabitTags : Table("habit-tags") {
+object HabitTags : Table("habit_tags") {
     val habitId = reference("habitId", Habits, onDelete = ReferenceOption.CASCADE).primaryKey(0)
     val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
 }
@@ -67,6 +70,7 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
     var numberOfRepetitions by Habits.numberOfRepetitions
     var period by Habits.period
     var startFrom by Habits.startFrom
+    var values by Habits.values
 
     fun toRow(): HabitRow = HabitRow(
         name,
@@ -77,7 +81,8 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
         quote,
         bad,
         startFrom,
-        idValue()
+        idValue(),
+        values.map { ValueType.valueOf(it) }
     )
 
     fun idValue() = HabitId(id.value)
@@ -93,7 +98,8 @@ data class HabitRow(
     val quote: String? = null,
     val bad: Boolean? = null,
     val startFrom: DateTime? = null,
-    val id: HabitId? = null
+    val id: HabitId? = null,
+    val values: List<ValueType> = emptyList()
 ) {
     constructor(habit: HabitView, userId: UserId) : this(
         habit.name,
@@ -104,7 +110,8 @@ data class HabitRow(
         habit.quote,
         habit.bad,
         habit.startFrom,
-        habit.id
+        habit.id,
+        habit.values
     )
 
     fun toView(): HabitView = HabitView(
@@ -115,7 +122,8 @@ data class HabitRow(
         quote,
         bad,
         startFrom,
-        id
+        id,
+        values
     )
 }
 
@@ -137,7 +145,7 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
     fun idValue() = TagId(id.value)
 }
 
-object ActionTags : Table("action-tags") {
+object ActionTags : Table("action_tags") {
     val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE).primaryKey(0)
     val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
 }
@@ -159,6 +167,7 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     var habit by Habit optionalReferencedOn Actions.habit
     var habitId by Actions.habit
     var created by Actions.created
+    var values by Value via ActionValues
 
     fun toRow(): ActionRow = ActionRow(
         toBaseActionRow(),
@@ -182,19 +191,22 @@ abstract class WithBaseActionRow(baseRow: BaseActionRow) {
     val description: String by baseRow
     val tags: List<TagRow> by baseRow
     val id: ActionId? by baseRow
+    val values: List<ValueRow> by baseRow
 }
 
 data class BaseActionRow(
     val description: String,
     val userId: UserId,
     val tags: List<TagRow>,
-    val id: ActionId? = null
+    val id: ActionId? = null,
+    val values: List<ValueRow> = emptyList()
 ) {
     constructor(view: ActionView, userId: UserId) : this(
         view.description,
         userId,
         view.tags,
-        view.id
+        view.id,
+        view.values
     )
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
@@ -203,6 +215,7 @@ data class BaseActionRow(
             WithBaseActionRow::description::name.get() -> this.description
             WithBaseActionRow::userId::name.get() -> this.userId
             WithBaseActionRow::tags::name.get() -> this.tags
+            WithBaseActionRow::values::name.get() -> this.values
             WithBaseActionRow::id::name.get() -> this.id
             else -> throw RuntimeException()
         } as T
@@ -222,7 +235,8 @@ data class ActionRow(
         description,
         tags,
         habitId,
-        id
+        id,
+        values
     )
 }
 
@@ -232,9 +246,37 @@ data class StreakRecord(
     val streak: BigDecimal
 )
 
-object UserTags : Table("user-tags") {
-    val userId = reference("userId", Users).primaryKey(0)
+object UserTags : Table("user_tags") {
+    val userId = reference("userId", Users, onDelete = ReferenceOption.CASCADE).primaryKey(0)
     val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
+}
+
+enum class ValueType {
+    Mood,
+    EndDate
+}
+
+object Values : UUIDTable("values", "id") {
+    val valueType = customEnumeration(
+        "value_type",
+        "ValueTypeEnum",
+        { value -> ValueType.valueOf(value as String) },
+        { PGEnum("ValueTypeEnum", it) })
+    val value = varchar("description", 200).nullable()
+}
+
+object ActionValues : Table("action_values") {
+    val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE).primaryKey(0)
+    val valueId = reference("valueId", Values, onDelete = ReferenceOption.CASCADE).primaryKey(1)
+}
+
+class Value(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<Value>(Values)
+
+    var value by Values.value
+    var valueType by Values.valueType
+
+    fun idValue() = ValueId(id.value)
 }
 
 fun createSchema() {
@@ -245,7 +287,9 @@ fun createSchema() {
         Actions,
         HabitTags,
         ActionTags,
-        UserTags
+        UserTags,
+        Values,
+        ActionValues
     )
 }
 
@@ -257,7 +301,8 @@ fun dropSchema() {
         Actions,
         HabitTags,
         ActionTags,
-        UserTags
+        UserTags,
+        Values
     )
 }
 
@@ -282,5 +327,18 @@ inline class TagId(val value: UUID) {
 inline class ActionId(val value: UUID) {
     companion object {
         fun randomValue() = ActionId(UUID.randomUUID())
+    }
+}
+
+inline class ValueId(val value: UUID) {
+    companion object {
+        fun randomValue() = ValueId(UUID.randomUUID())
+    }
+}
+
+class PGEnum<T : Enum<T>>(enumTypeName: String, enumValue: T?) : PGobject() {
+    init {
+        value = enumValue?.name
+        type = enumTypeName
     }
 }

@@ -4,15 +4,17 @@ import com.j0rsa.bujo.tracker.handler.ActionHandler
 import com.j0rsa.bujo.tracker.handler.HabitHandler
 import com.j0rsa.bujo.tracker.handler.TagHandler
 import com.j0rsa.bujo.tracker.handler.UserHandler
-import com.j0rsa.bujo.tracker.model.*
-import org.http4k.server.Http4kServer
-import org.http4k.core.*
-import org.http4k.server.Jetty
+import com.j0rsa.bujo.tracker.model.createSchema
+import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.core.then
 import org.http4k.filter.ServerFilters.CatchLensFailure
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.http4k.server.Http4kServer
+import org.http4k.server.Jetty
 import org.http4k.server.asServer
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 fun main() {
@@ -22,10 +24,7 @@ fun main() {
 
 fun startApp(): Http4kServer {
     val logger = LoggerFactory.getLogger("main")
-
-    TransactionManager.tx {
-        createSchema()
-    }
+    dbMigrate()
 
     val app = CatchLensFailure.then(
         routes(
@@ -66,4 +65,11 @@ fun startApp(): Http4kServer {
     val server = app.asServer(Jetty(Config.app.port)).start()
     logger.info("Server started on port ${Config.app.port}")
     return server
+}
+
+private fun dbMigrate() {
+//    TransactionManager.migrate()
+    TransactionManager.tx {
+        createSchema()
+    }
 }

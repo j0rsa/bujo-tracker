@@ -1,7 +1,11 @@
 package com.j0rsa.bujo.tracker.model
 
 import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.ColumnType
+import org.jetbrains.exposed.sql.Table
 import org.joda.time.DateTime
+import org.postgresql.jdbc.PgArray
 import java.math.BigDecimal
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -115,4 +119,52 @@ private fun <T : Any> ResultSet.extractValue(property: KClass<T>, name: String) 
     Long::class -> getLong(name)
     String::class -> getString(name)
     else -> getObject(name, property.java)
+}
+
+fun Table.arrayOfString(name: String): Column<List<String>> =
+    registerColumn(name, StringArrayColumnType())
+
+internal class StringArrayColumnType : ColumnType() {
+    override fun sqlType() = "VARCHAR[]"
+    override fun valueFromDB(value: Any): List<String> = when (value) {
+        is Iterable<*> -> value.map { it.toString()}
+        is PgArray -> {
+            val array = value.array
+            if (array is Array<*>) {
+                array.map {
+                    when (it) {
+                        is String -> it
+                        null -> error("Unexpected value of type String but value is $it")
+                        else -> error("Unexpected value of type String: $it of ${it::class.qualifiedName}")
+                    }
+                }
+            } else {
+                throw Exception("Values returned from database if not of type kotlin Array<*>")
+            }
+        }
+        else -> throw Exception("Values returned from database if not of type PgArray")
+    }
+
+    override fun valueToString(value: Any?): String = when (value) {
+        null -> {
+            if (!nullable) error("NULL in non-nullable column")
+            "NULL"
+        }
+
+        is Iterable<*> -> {
+            "'{${value.joinToString()}}'"
+        }
+
+        else -> {
+            nonNullValueToString(value)
+        }
+    }
+
+    override fun setParameter(stmt: PreparedStatement, index: Int, value: Any?) {
+        if (value is List<*>) {
+            stmt.setArray(index, stmt.connection.createArrayOf("varchar", value.toTypedArray()))
+        } else {
+            super.setParameter(stmt, index, value)
+        }
+    }
 }

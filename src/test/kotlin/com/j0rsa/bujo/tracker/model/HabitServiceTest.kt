@@ -24,6 +24,18 @@ internal class HabitServiceTest : TransactionalTest {
     }
 
     @Test
+    fun testCreateWithActionCreation() {
+        tempTx {
+            val expected = defaultHabitRow(userId, values = listOf(ValueType.Mood))
+            val habitId = HabitService.create(expected)
+
+            val habit = HabitRepository.findById(habitId)
+            assertThat(habit).isNotNull()
+            assertThat(habit!!.toRow().values).isEqualTo(expected.values)
+        }
+    }
+
+    @Test
     fun testCreateWithSeveralTagCreation() {
         tempTx {
             val habitId = HabitService.create(

@@ -5,7 +5,6 @@ import org.joda.time.Days
 import org.joda.time.Weeks
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.LoggerFactory.getLogger
 import kotlin.reflect.full.companionObject
 
 fun DateTime.isCurrentDay() = Days.daysBetween(this, DateTime.now()).days in (0..1)
