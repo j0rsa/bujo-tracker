@@ -288,4 +288,22 @@ internal class ActionServiceTest : TransactionalTest {
             assertThat(foundAction!!.toRow().values).containsOnly(defaultValue)
         }
     }
+
+    @Test
+    fun testUpdateWithValues() {
+        tempTx {
+            val action = defaultAction(user)
+            val valueId = defaultValue(action, ValueType.EndDate).idValue()
+
+            val defaultValue = defaultValue()
+            val actionRow = defaultBaseActionRow(userId, id = action.idValue(), values = listOf(defaultValue))
+            ActionService.update(actionRow)
+
+            val foundAction = ActionRepository.findById(action.idValue())
+            assertThat(foundAction).isNotNull()
+            assertThat(foundAction!!.toRow().values).containsOnly(defaultValue)
+            val foundValues = ValueService.findAll()
+            assertThat(foundValues).hasSize(1)
+        }
+    }
 }

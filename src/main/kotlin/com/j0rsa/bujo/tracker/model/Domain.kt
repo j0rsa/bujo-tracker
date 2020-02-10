@@ -4,6 +4,7 @@ import com.j0rsa.bujo.tracker.handler.ActionView
 import com.j0rsa.bujo.tracker.handler.HabitView
 import com.j0rsa.bujo.tracker.handler.TagRow
 import com.j0rsa.bujo.tracker.handler.ValueRow
+import com.j0rsa.bujo.tracker.model.Values.nullable
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.*
 import org.joda.time.DateTime
@@ -167,7 +168,7 @@ class Action(id: EntityID<UUID>) : UUIDEntity(id) {
     var habit by Habit optionalReferencedOn Actions.habit
     var habitId by Actions.habit
     var created by Actions.created
-    var values by Value via ActionValues
+    val values by Value referrersOn Values.actionId
 
     fun toRow(): ActionRow = ActionRow(
         toBaseActionRow(),
@@ -258,22 +259,19 @@ enum class ValueType {
 }
 
 object Values : UUIDTable("values", "id") {
-    val type = customEnumeration(
+    val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE)
+    val type = Values.customEnumeration(
         "value_type",
         "ValueTypeEnum",
         { value -> ValueType.valueOf(value as String) },
         { PGEnum("ValueTypeEnum", it) })
-    val value = varchar("description", 200).nullable()
-}
-
-object ActionValues : Table("action_values") {
-    val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE).primaryKey(0)
-    val valueId = reference("valueId", Values, onDelete = ReferenceOption.CASCADE).primaryKey(1)
+    val value = Values.varchar("description", 200).nullable()
 }
 
 class Value(id: EntityID<UUID>) : UUIDEntity(id) {
     companion object : UUIDEntityClass<Value>(Values)
 
+    var action by Action referencedOn Values.actionId
     var value by Values.value
     var type by Values.type
 
@@ -291,8 +289,7 @@ fun createSchema() {
         HabitTags,
         ActionTags,
         UserTags,
-        Values,
-        ActionValues
+        Values
     )
 }
 

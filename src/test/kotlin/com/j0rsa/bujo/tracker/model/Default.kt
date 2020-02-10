@@ -58,6 +58,13 @@ fun defaultActionRow(
 )
 
 fun defaultValue(type: ValueType = ValueType.Mood, value: String = "testValue") = ValueRow(type, value)
+
+fun defaultValue(action: Action, type: ValueType = ValueType.Mood, value: String = "testValue") = Value.new {
+    this.action = action
+    this.type = type
+    this.value = value
+}
+
 fun defaultBaseActionRow(
     userId: UserId,
     name: String = "testTagAction",

@@ -19,14 +19,14 @@ object ActionService {
             0 -> Left(NotFound)
             1 -> {
                 val tags = TagService.createTagsIfNotExist(foundUser, row.tags)
-                val values = ValueService.create(row.values)
-                Right(Action.new(ActionId.randomValue().value) {
+                val action = Action.new(ActionId.randomValue().value) {
                     description = row.description
                     user = foundUser
-                    this.values = SizedCollection(values)
                     this.tags = SizedCollection(tags)
                     habit = foundHabits.first()
-                }.idValue())
+                }
+                ValueService.create(row.values, action)
+                Right(action.idValue())
             }
             else -> Left(SyStemError("Found too many records"))
         }
@@ -35,13 +35,13 @@ object ActionService {
     fun create(row: BaseActionRow): ActionId {
         val foundUser = UserRepository.findOne(row.userId)!!
         val tags = TagService.createTagsIfNotExist(foundUser, row.tags)
-        val values = ValueService.create(row.values)
-        return Action.new(ActionId.randomValue().value) {
+        val action = Action.new(ActionId.randomValue().value) {
             description = row.description
             user = foundUser
-            this.values = SizedCollection(values)
             this.tags = SizedCollection(tags)
-        }.idValue()
+        }
+        ValueService.create(row.values, action)
+        return action.idValue()
     }
 
     fun findAll(userId: UserId) = ActionRepository.findAll(userId).toList().map { it.toRow() }
@@ -62,12 +62,12 @@ object ActionService {
         findOne(row.id!!, row.userId).map(updateAction(row))
 
     private fun updateAction(row: BaseActionRow): (Action) -> ActionRow = { action: Action ->
-        val allTags = TagService.createTagsIfNotExist(row.userId, row.tags)
+        val tags = TagService.createTagsIfNotExist(row.userId, row.tags)
         action.apply {
             description = row.description
-            tags = SizedCollection(allTags)
+            this.tags = SizedCollection(tags)
         }
-        //TODO add values to update
+        ValueService.reCreate(row.values, action)
         action.toRow()
     }
 
