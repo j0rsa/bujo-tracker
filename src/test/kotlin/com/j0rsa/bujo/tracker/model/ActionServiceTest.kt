@@ -293,7 +293,7 @@ internal class ActionServiceTest : TransactionalTest {
     fun testUpdateWithValues() {
         tempTx {
             val action = defaultAction(user)
-            val valueId = defaultValue(action, ValueType.EndDate).idValue()
+            defaultValue(action, ValueType.EndDate).idValue()
 
             val defaultValue = defaultValue()
             val actionRow = defaultBaseActionRow(userId, id = action.idValue(), values = listOf(defaultValue))
