@@ -3,6 +3,7 @@ package com.j0rsa.bujo.tracker.model
 import com.j0rsa.bujo.tracker.handler.TagRow
 import com.j0rsa.bujo.tracker.handler.UserInfo
 import com.j0rsa.bujo.tracker.handler.ValueRow
+import com.j0rsa.bujo.tracker.handler.ValueTemplateRow
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.insert
 import org.joda.time.DateTime
@@ -35,7 +36,7 @@ fun defaultHabitRow(
     name: String = "testHabit",
     tags: List<TagRow> = listOf(defaultTagRow()),
     id: HabitId? = null,
-    values: List<ValueType> = emptyList()
+    values: List<ValueTemplateRow> = emptyList()
 ) = HabitRow(
     name,
     tags,
@@ -57,12 +58,38 @@ fun defaultActionRow(
     habitId
 )
 
-fun defaultValue(type: ValueType = ValueType.Mood, value: String = "testValue") = ValueRow(type, value)
+fun defaultValue(type: ValueType = ValueType.Mood, value: String = "testValue", name: String = "testName") =
+    ValueRow(type, value, name)
 
-fun defaultValue(action: Action, type: ValueType = ValueType.Mood, value: String = "testValue") = Value.new {
+fun defaultValueTemplate(
+    type: ValueType = ValueType.Mood,
+    values: List<String> = emptyList(),
+    name: String = "testName"
+) =
+    ValueTemplateRow(type, values, name)
+
+fun defaultValue(
+    action: Action,
+    type: ValueType = ValueType.Mood,
+    value: String = "testValue",
+    name: String = "testName"
+) = Value.new {
     this.action = action
     this.type = type
     this.value = value
+    this.name = name
+}
+
+fun defaultValueTemplate(
+    habit: Habit,
+    type: ValueType = ValueType.Mood,
+    values: List<String> = emptyList(),
+    name: String = "testName"
+) = ValueTemplate.new {
+    this.habit = habit
+    this.type = type
+    this.values = values
+    this.name = name
 }
 
 fun defaultBaseActionRow(
@@ -76,14 +103,12 @@ fun defaultBaseActionRow(
 fun defaultHabit(
     habitUser: User,
     tagList: List<Tag> = listOf(),
-    habitName: String = "testHabit",
-    values: List<ValueType> = emptyList()
+    habitName: String = "testHabit"
 ) = Habit.new(HabitId.randomValue().value) {
     name = habitName
     user = habitUser
     numberOfRepetitions = 1
     period = Period.Day
-    this.values = values.map { it.toString() }
     tags = SizedCollection(tagList)
 }
 

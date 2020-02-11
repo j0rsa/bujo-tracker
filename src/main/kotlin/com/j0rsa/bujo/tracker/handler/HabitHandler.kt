@@ -91,7 +91,7 @@ data class Habit(
     val bad: Boolean?,
     val startFrom: DateTime?,
     val id: HabitId? = null,
-    val values: List<ValueType> = emptyList()
+    val values: List<ValueTemplateRow> = emptyList()
 )
 typealias HabitView = Habit
 
@@ -109,3 +109,12 @@ data class StreakRow(
     val currentStreak: BigDecimal = BigDecimal.ZERO,
     val maxStreak: BigDecimal = BigDecimal.ZERO
 )
+
+
+data class ValueTemplate(
+    val type: ValueType,
+    val values: List<String> = emptyList(),
+    val name: String? = null
+)
+
+typealias ValueTemplateRow = ValueTemplate

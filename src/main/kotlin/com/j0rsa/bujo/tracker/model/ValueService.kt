@@ -5,10 +5,11 @@ import org.jetbrains.exposed.sql.deleteWhere
 
 object ValueService {
 
-    fun create(value: ValueRow, action: Action) = Value.new {
+    private fun create(row: ValueRow, action: Action) = Value.new {
         this.action = action
-        type = value.type
-        this.value = value.value
+        type = row.type
+        this.value = row.value
+        this.name = row.name
     }
 
     fun create(values: List<ValueRow>, action: Action) = values.map { create(it, action) }

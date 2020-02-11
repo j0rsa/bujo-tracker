@@ -24,14 +24,34 @@ internal class HabitServiceTest : TransactionalTest {
     }
 
     @Test
-    fun testCreateWithActionCreation() {
+    fun testCreateWithValueTemplateCreation() {
         tempTx {
-            val expected = defaultHabitRow(userId, values = listOf(ValueType.Mood))
+            val expected = defaultHabitRow(userId, values = listOf(defaultValueTemplate()))
             val habitId = HabitService.create(expected)
 
             val habit = HabitRepository.findById(habitId)
             assertThat(habit).isNotNull()
             assertThat(habit!!.toRow().values).isEqualTo(expected.values)
+        }
+    }
+
+    @Test
+    fun testUpdateWithValueTemplate() {
+        tempTx {
+            val createdHabit = defaultHabit(user)
+            defaultValueTemplate(createdHabit)
+
+            val template = defaultValueTemplate(ValueType.EndDate, name = "newName")
+            val habitRowToUpdate = defaultHabitRow(userId, id = createdHabit.idValue(), values = listOf(template))
+            HabitService.update(habitRowToUpdate)
+
+            val habit = HabitRepository.findById(createdHabit.idValue())
+            assertThat(habit).isNotNull()
+            assertThat(habit!!.toRow().values).containsOnly(template)
+
+            val allTemplates = ValueTemplateService.findAll().map { it.toRow() }
+            assertThat(allTemplates).hasSize(1)
+            assertThat(allTemplates).containsOnly(template)
         }
     }
 

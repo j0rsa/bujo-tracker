@@ -1,9 +1,8 @@
 package com.j0rsa.bujo.tracker.model
 
-import com.j0rsa.bujo.tracker.handler.ActionView
-import com.j0rsa.bujo.tracker.handler.HabitView
-import com.j0rsa.bujo.tracker.handler.TagRow
-import com.j0rsa.bujo.tracker.handler.ValueRow
+import com.j0rsa.bujo.tracker.handler.*
+import com.j0rsa.bujo.tracker.model.Action.Companion.referrersOn
+import com.j0rsa.bujo.tracker.model.ValueTemplates.nullable
 import com.j0rsa.bujo.tracker.model.Values.nullable
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.*
@@ -51,7 +50,6 @@ object Habits : UUIDTable("habits", "id") {
     val bad = bool("bad").default(false).nullable()
     val startFrom = datetime("startFrom").clientDefault { DateTime.now() }.nullable()
     val created = datetime("created").clientDefault { DateTime.now() }.nullable()
-    val values = arrayOfString("values")
 }
 
 object HabitTags : Table("habit_tags") {
@@ -71,7 +69,7 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
     var numberOfRepetitions by Habits.numberOfRepetitions
     var period by Habits.period
     var startFrom by Habits.startFrom
-    var values by Habits.values
+    val values by ValueTemplate referrersOn ValueTemplates.habitId
 
     fun toRow(): HabitRow = HabitRow(
         name,
@@ -83,7 +81,7 @@ class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
         bad,
         startFrom,
         idValue(),
-        values.map { ValueType.valueOf(it) }
+        values.map { it.toRow() }
     )
 
     fun idValue() = HabitId(id.value)
@@ -100,7 +98,7 @@ data class HabitRow(
     val bad: Boolean? = null,
     val startFrom: DateTime? = null,
     val id: HabitId? = null,
-    val values: List<ValueType> = emptyList()
+    val values: List<ValueTemplateRow> = emptyList()
 ) {
     constructor(habit: HabitView, userId: UserId) : this(
         habit.name,
@@ -261,11 +259,12 @@ enum class ValueType {
 object Values : UUIDTable("values", "id") {
     val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE)
     val type = Values.customEnumeration(
-        "value_type",
+        "type",
         "ValueTypeEnum",
         { value -> ValueType.valueOf(value as String) },
         { PGEnum("ValueTypeEnum", it) })
-    val value = Values.varchar("description", 200).nullable()
+    val name = Values.varchar("name", 200).nullable()
+    val value = Values.varchar("value", 200).nullable()
 }
 
 class Value(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -274,10 +273,35 @@ class Value(id: EntityID<UUID>) : UUIDEntity(id) {
     var action by Action referencedOn Values.actionId
     var value by Values.value
     var type by Values.type
+    var name by Values.name
 
     fun idValue() = ValueId(id.value)
 
-    fun toRow(): ValueRow = ValueRow(type, value)
+    fun toRow(): ValueRow = ValueRow(type, value, name)
+}
+
+object ValueTemplates : UUIDTable("values_templates", "id") {
+    val habitId = reference("habitId", Habits, onDelete = ReferenceOption.CASCADE)
+    val type = customEnumeration(
+        "type",
+        "ValueTypeEnum",
+        { value -> ValueType.valueOf(value as String) },
+        { PGEnum("ValueTypeEnum", it) })
+    val name = varchar("name", 200).nullable()
+    val values = arrayOfString("values")
+}
+
+class ValueTemplate(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<ValueTemplate>(ValueTemplates)
+
+    var habit by Habit referencedOn ValueTemplates.habitId
+    var values by ValueTemplates.values
+    var type by ValueTemplates.type
+    var name by ValueTemplates.name
+
+    fun idValue() = ValueTemplateId(id.value)
+
+    fun toRow(): ValueTemplateRow = ValueTemplateRow(type, values, name)
 }
 
 fun createSchema() {
@@ -289,7 +313,8 @@ fun createSchema() {
         HabitTags,
         ActionTags,
         UserTags,
-        Values
+        Values,
+        ValueTemplates
     )
 }
 
@@ -302,7 +327,8 @@ fun dropSchema() {
         HabitTags,
         ActionTags,
         UserTags,
-        Values
+        Values,
+        ValueTemplates
     )
 }
 
@@ -333,6 +359,12 @@ inline class ActionId(val value: UUID) {
 inline class ValueId(val value: UUID) {
     companion object {
         fun randomValue() = ValueId(UUID.randomUUID())
+    }
+}
+
+inline class ValueTemplateId(val value: UUID) {
+    companion object {
+        fun randomValue() = ValueTemplateId(UUID.randomUUID())
     }
 }
 
