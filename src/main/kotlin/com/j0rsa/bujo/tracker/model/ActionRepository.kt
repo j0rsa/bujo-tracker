@@ -4,29 +4,29 @@ import org.jetbrains.exposed.sql.*
 import java.math.BigDecimal
 
 object ActionRepository {
-    fun findAllWithOneTagWithoutAnother(oneTag: TagId, anotherTag: TagId): List<Action> {
-        val query = Actions
-            .slice(Actions.columns)
-            .select {
-                notExists(ActionTags.select {
-                    (ActionTags.tagId eq anotherTag.value) and (ActionTags.actionId eq Actions.id)
-                }) and exists(ActionTags.select {
-                    (ActionTags.tagId eq oneTag.value) and (ActionTags.actionId eq Actions.id)
-                })
-            }
+	fun findAllWithOneTagWithoutAnother(oneTag: TagId, anotherTag: TagId): List<Action> {
+		val query = Actions
+			.slice(Actions.columns)
+			.select {
+				notExists(ActionTags.select {
+					(ActionTags.tagId eq anotherTag.value) and (ActionTags.actionId eq Actions.id)
+				}) and exists(ActionTags.select {
+					(ActionTags.tagId eq oneTag.value) and (ActionTags.actionId eq Actions.id)
+				})
+			}
 
-        return Action.wrapRows(query).toList()
-    }
+		return Action.wrapRows(query).toList()
+	}
 
-    fun findAll(userId: UserId) = Action.find { Actions.user eq userId.value }.toList()
+	fun findAll(userId: UserId) = Action.find { Actions.user eq userId.value }.toList()
 
-    fun findById(actionId: ActionId) = Action.findById(actionId.value)
+	fun findById(actionId: ActionId) = Action.findById(actionId.value)
 
-    fun findOneBy(actionId: ActionId, userId: UserId) =
-        Action.find { (Actions.id eq actionId.value) and (Actions.user eq userId.value) }.toList()
+	fun findOneBy(actionId: ActionId, userId: UserId) =
+		Action.find { (Actions.id eq actionId.value) and (Actions.user eq userId.value) }.toList()
 
-    fun findStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
-        """
+	fun findStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
+		"""
             WITH
               groups(minDate, maxDate, weekMinusRow) AS (
                 SELECT
@@ -46,14 +46,14 @@ object ActionRepository {
             GROUP BY weekMinusRow
             ORDER BY endDate DESC
         """.trimIndent()
-            .exec(
-                param(habitId),
-                param(numberOfRepetitions)
-            )
-            .toEntities()
+			.exec(
+				param(habitId),
+				param(numberOfRepetitions)
+			)
+			.toEntities()
 
-    fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
-        """
+	fun findCurrentStreakForWeek(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
+		"""
             WITH
               groups(minDate, maxDate, weekMinusRow) AS (
                 SELECT
@@ -76,15 +76,15 @@ object ActionRepository {
             ORDER BY endDate DESC
             LIMIT 1
         """.trimIndent()
-            .exec(
-                param(habitId),
-                param(numberOfRepetitions)
-            )
-            .getValue<BigDecimal>("streak")
-            .firstOrNull()
+			.exec(
+				param(habitId),
+				param(numberOfRepetitions)
+			)
+			.getValue<BigDecimal>("streak")
+			.firstOrNull()
 
-    fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
-        ("""
+	fun findStreakForDay(habitId: HabitId, numberOfRepetitions: Int): List<StreakRecord> =
+		("""
             WITH
               groups(minDate, maxDate, dateMinusRow) AS (
                 SELECT 
@@ -104,15 +104,15 @@ object ActionRepository {
             GROUP BY dateMinusRow
             ORDER BY endDate DESC
             """
-            .trimIndent())
-            .exec(
-                param(habitId),
-                param(numberOfRepetitions)
-            )
-            .toEntities()
+			.trimIndent())
+			.exec(
+				param(habitId),
+				param(numberOfRepetitions)
+			)
+			.toEntities()
 
-    fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
-        ("""
+	fun findCurrentStreakForDay(habitId: HabitId, numberOfRepetitions: Int): BigDecimal? =
+		("""
             WITH
               groups(minDate, maxDate, dateMinusRow) AS (
                 SELECT 
@@ -135,11 +135,11 @@ object ActionRepository {
             ORDER BY endDate DESC
             LIMIT 1
             """
-            .trimIndent())
-            .exec(
-                param(habitId),
-                param(numberOfRepetitions)
-            )
-            .getValue<BigDecimal>("streak")
-            .firstOrNull()
+			.trimIndent())
+			.exec(
+				param(habitId),
+				param(numberOfRepetitions)
+			)
+			.getValue<BigDecimal>("streak")
+			.firstOrNull()
 }

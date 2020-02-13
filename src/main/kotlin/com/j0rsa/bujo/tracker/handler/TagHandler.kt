@@ -13,26 +13,26 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 
 object TagHandler {
-    fun findAll() = { req: Request ->
-        val tags = TransactionManager.tx {
-            TagService.findAll(userIdLens(req))
-        }
-        tagsLens(tags, Response(Status.OK))
-    }
+	fun findAll() = { req: Request ->
+		val tags = TransactionManager.tx {
+			TagService.findAll(userIdLens(req))
+		}
+		tagsLens(tags, Response(Status.OK))
+	}
 
-    fun update() = { req: Request ->
-        val newTag = TransactionManager.tx {
-            TagService.update(userIdLens(req), tagLens(req))
-        }
-        when (newTag) {
-            is Either.Left -> response(newTag)
-            is Either.Right -> tagLens(newTag.b, Response(Status.OK))
-        }
-    }
+	fun update() = { req: Request ->
+		val newTag = TransactionManager.tx {
+			TagService.update(userIdLens(req), tagLens(req))
+		}
+		when (newTag) {
+			is Either.Left -> response(newTag)
+			is Either.Right -> tagLens(newTag.b, Response(Status.OK))
+		}
+	}
 }
 
 data class Tag(
-    val name: String,
-    val id: TagId? = null
+	val name: String,
+	val id: TagId? = null
 )
 typealias TagRow = Tag

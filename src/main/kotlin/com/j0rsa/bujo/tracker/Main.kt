@@ -18,58 +18,58 @@ import org.http4k.server.asServer
 import org.slf4j.LoggerFactory
 
 fun main() {
-    val server = startApp()
-    server.block()
+	val server = startApp()
+	server.block()
 }
 
 fun startApp(): Http4kServer {
-    val logger = LoggerFactory.getLogger("main")
-    dbMigrate()
+	val logger = LoggerFactory.getLogger("main")
+	dbMigrate()
 
-    val app = CatchLensFailure.then(
-        routes(
-            "/health" bind Method.GET to { Response(Status.OK) },
-            "/habits" bind routes(
-                "/" bind Method.POST to HabitHandler.create(),
-                "/" bind Method.GET to HabitHandler.findAll(),
-                "/{id}" bind routes(
-                    Method.GET to HabitHandler.findOne(),
-                    Method.POST to HabitHandler.update(),
-                    Method.DELETE to HabitHandler.delete()
-                )
-            ),
-            "/tags" bind routes(
-                "/" bind Method.GET to TagHandler.findAll(),
-                "/{id}" bind routes(
-                    Method.POST to TagHandler.update()
-                )
-            ),
-            "/actions" bind routes(
-                "/" bind Method.POST to ActionHandler.createWithTags(),
-                "/" bind Method.GET to ActionHandler.findAll(),
-                "/{id}" bind routes(
-                    Method.GET to ActionHandler.findOne(),
-                    Method.POST to ActionHandler.update(),
-                    Method.DELETE to ActionHandler.delete()
-                ),
-                "/habit/{id}" bind Method.POST to ActionHandler.createWithHabit()
-            ),
-            "/users" bind routes(
-                "/{telegram_id}" bind Method.GET to UserHandler.findUser(),
-                "/" bind Method.POST to UserHandler.createOrUpdateUser()
-            )
-        )
-    )
+	val app = CatchLensFailure.then(
+		routes(
+			"/health" bind Method.GET to { Response(Status.OK) },
+			"/habits" bind routes(
+				"/" bind Method.POST to HabitHandler.create(),
+				"/" bind Method.GET to HabitHandler.findAll(),
+				"/{id}" bind routes(
+					Method.GET to HabitHandler.findOne(),
+					Method.POST to HabitHandler.update(),
+					Method.DELETE to HabitHandler.delete()
+				)
+			),
+			"/tags" bind routes(
+				"/" bind Method.GET to TagHandler.findAll(),
+				"/{id}" bind routes(
+					Method.POST to TagHandler.update()
+				)
+			),
+			"/actions" bind routes(
+				"/" bind Method.POST to ActionHandler.createWithTags(),
+				"/" bind Method.GET to ActionHandler.findAll(),
+				"/{id}" bind routes(
+					Method.GET to ActionHandler.findOne(),
+					Method.POST to ActionHandler.update(),
+					Method.DELETE to ActionHandler.delete()
+				),
+				"/habit/{id}" bind Method.POST to ActionHandler.createWithHabit()
+			),
+			"/users" bind routes(
+				"/{telegram_id}" bind Method.GET to UserHandler.findUser(),
+				"/" bind Method.POST to UserHandler.createOrUpdateUser()
+			)
+		)
+	)
 
-    logger.info("Starting server...")
-    val server = app.asServer(Jetty(Config.app.port)).start()
-    logger.info("Server started on port ${Config.app.port}")
-    return server
+	logger.info("Starting server...")
+	val server = app.asServer(Jetty(Config.app.port)).start()
+	logger.info("Server started on port ${Config.app.port}")
+	return server
 }
 
 private fun dbMigrate() {
 //    TransactionManager.migrate()
-    TransactionManager.tx {
-        createSchema()
-    }
+	TransactionManager.tx {
+		createSchema()
+	}
 }

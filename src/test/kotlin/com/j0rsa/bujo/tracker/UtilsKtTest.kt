@@ -6,59 +6,59 @@ import org.junit.jupiter.api.Test
 
 internal class UtilsKtTest {
 
-    @Test
-    fun isCurrentDayWhenYesterday() {
-        val isYesterdayCurrentDay = DateTime.now().minusDays(1).isCurrentDay()
+	@Test
+	fun isCurrentDayWhenYesterday() {
+		val isYesterdayCurrentDay = DateTime.now().minusDays(1).isCurrentDay()
 
-        assertThat(isYesterdayCurrentDay)
-    }
+		assertThat(isYesterdayCurrentDay)
+	}
 
-    @Test
-    fun isCurrentWeekWhenIsLessThenWeekAgo() {
-        val isWeekAgoCurrentWeek = DateTime.now().minusWeeks(1).isCurrentWeek()
+	@Test
+	fun isCurrentWeekWhenIsLessThenWeekAgo() {
+		val isWeekAgoCurrentWeek = DateTime.now().minusWeeks(1).isCurrentWeek()
 
-        assertThat(isWeekAgoCurrentWeek)
-    }
+		assertThat(isWeekAgoCurrentWeek)
+	}
 
-    @Test
-    fun isCurrentDayWhenTodayEvening() {
-        val isToDayEveningCurrentDay = DateTime.now().withTime(23, 59, 0, 0).isCurrentDay()
+	@Test
+	fun isCurrentDayWhenTodayEvening() {
+		val isToDayEveningCurrentDay = DateTime.now().withTime(23, 59, 0, 0).isCurrentDay()
 
-        assertThat(isToDayEveningCurrentDay)
-    }
+		assertThat(isToDayEveningCurrentDay)
+	}
 
-    @Test
-    fun isCurrentWeekWhenToday() {
-        val isTodayCurrentWeek = DateTime.now().isCurrentWeek()
+	@Test
+	fun isCurrentWeekWhenToday() {
+		val isTodayCurrentWeek = DateTime.now().isCurrentWeek()
 
-        assertThat(isTodayCurrentWeek)
-    }
+		assertThat(isTodayCurrentWeek)
+	}
 
-    @Test
-    fun isCurrentDayWhenTomorrow() {
-        val isTomorrowCurrentDay = DateTime.now().plusDays(1).isCurrentDay()
+	@Test
+	fun isCurrentDayWhenTomorrow() {
+		val isTomorrowCurrentDay = DateTime.now().plusDays(1).isCurrentDay()
 
-        assertThat(isTomorrowCurrentDay)
-    }
+		assertThat(isTomorrowCurrentDay)
+	}
 
-    @Test
-    fun isCurrentWeekWhenNextWeek() {
-        val isNextWeekCurrentWeek = DateTime.now().plusWeeks(1).isCurrentWeek()
+	@Test
+	fun isCurrentWeekWhenNextWeek() {
+		val isNextWeekCurrentWeek = DateTime.now().plusWeeks(1).isCurrentWeek()
 
-        assertThat(isNextWeekCurrentWeek)
-    }
+		assertThat(isNextWeekCurrentWeek)
+	}
 
-    @Test
-    fun isNotCurrentDayWhenAfterTomorrow() {
-        val isAfterTomorrowCurrentDay = DateTime.now().plusDays(2).isCurrentDay()
+	@Test
+	fun isNotCurrentDayWhenAfterTomorrow() {
+		val isAfterTomorrowCurrentDay = DateTime.now().plusDays(2).isCurrentDay()
 
-        assertThat(!isAfterTomorrowCurrentDay)
-    }
+		assertThat(!isAfterTomorrowCurrentDay)
+	}
 
-    @Test
-    fun isNotCurrentWeekWhenAfterNextWeek() {
-        val isAfterNextWeekCurrentWeek = DateTime.now().plusWeeks(2).isCurrentWeek()
+	@Test
+	fun isNotCurrentWeekWhenAfterNextWeek() {
+		val isAfterNextWeekCurrentWeek = DateTime.now().plusWeeks(2).isCurrentWeek()
 
-        assertThat(!isAfterNextWeekCurrentWeek)
-    }
+		assertThat(!isAfterNextWeekCurrentWeek)
+	}
 }

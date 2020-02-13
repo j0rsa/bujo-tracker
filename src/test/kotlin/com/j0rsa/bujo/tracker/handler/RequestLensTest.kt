@@ -18,16 +18,16 @@ import org.junit.jupiter.api.Assertions.*
 
 internal class RequestLensTest {
 
-    @Test
-    fun testActionLens() {
-        val actionView = ActionView()
-        val json = Gson().toJson(actionView)
-        val request = Request(Method.GET, "/").body(json)
-        val result = actionLens(request)
-        assertThat(result.values).isEmpty()
-    }
+	@Test
+	fun testActionLens() {
+		val actionView = ActionView()
+		val json = Gson().toJson(actionView)
+		val request = Request(Method.GET, "/").body(json)
+		val result = actionLens(request)
+		assertThat(result.values).isEmpty()
+	}
 
-    data class ActionView(
-        val description: String = "testDescription"
-    )
+	data class ActionView(
+		val description: String = "testDescription"
+	)
 }

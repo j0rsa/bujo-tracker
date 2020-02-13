@@ -11,12 +11,12 @@ fun DateTime.isCurrentDay() = Days.daysBetween(this, DateTime.now()).days in (0.
 fun DateTime.isCurrentWeek() = Weeks.weeksBetween(this, DateTime.now()).weeks in (0..1)
 
 fun <T : Any> getClassForLogging(javaClass: Class<T>): Class<*> {
-    return javaClass.enclosingClass?.takeIf {
-        it.kotlin.companionObject?.java == javaClass
-    } ?: javaClass
+	return javaClass.enclosingClass?.takeIf {
+		it.kotlin.companionObject?.java == javaClass
+	} ?: javaClass
 }
 
 interface Logging
 
 inline fun <reified T : Logging> T.logger(): Logger =
-    LoggerFactory.getLogger(getClassForLogging(T::class.java).name + " w/interface")
+	LoggerFactory.getLogger(getClassForLogging(T::class.java).name + " w/interface")

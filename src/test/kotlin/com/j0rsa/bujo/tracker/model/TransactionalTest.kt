@@ -8,38 +8,38 @@ import org.junit.jupiter.api.BeforeAll
 import kotlin.properties.Delegates
 
 internal interface TransactionalTest {
-    fun <T> isNotFound(result: Either<TrackerError, T>) =
-        (result as Either.Left).a == NotFound
+	fun <T> isNotFound(result: Either<TrackerError, T>) =
+		(result as Either.Left).a == NotFound
 
-    fun tempTx(block: () -> Unit) =
-        TransactionManager.tx {
-            block()
-            currentTransaction().rollback()
-        }
+	fun tempTx(block: () -> Unit) =
+		TransactionManager.tx {
+			block()
+			currentTransaction().rollback()
+		}
 
-    fun tempTxWithoutRollback(block: () -> Unit) =
-        TransactionManager.tx {
-            block()
-        }
+	fun tempTxWithoutRollback(block: () -> Unit) =
+		TransactionManager.tx {
+			block()
+		}
 
-    fun currentTransaction() = TransactionManager.currentTransaction()
+	fun currentTransaction() = TransactionManager.currentTransaction()
 
-    companion object {
-        lateinit var user: User
-        lateinit var telegramUser: User
-        var userId: UserId by Delegates.notNull()
+	companion object {
+		lateinit var user: User
+		lateinit var telegramUser: User
+		var userId: UserId by Delegates.notNull()
 
-        @BeforeAll
-        @JvmStatic
-        fun beforeAll() {
+		@BeforeAll
+		@JvmStatic
+		fun beforeAll() {
 //            TransactionManager.migrate()
-            TransactionManager.tx {
-                createSchema()
-                user = User.find { Users.telegramId.isNull() }.firstOrNull() ?: defaultUser()
-                telegramUser = UserRepository.findOneByTelegramId(1).firstOrNull() ?: defaultTelegramUser()
-                userId = user.idValue()
-            }
-        }
+			TransactionManager.tx {
+				createSchema()
+				user = User.find { Users.telegramId.isNull() }.firstOrNull() ?: defaultUser()
+				telegramUser = UserRepository.findOneByTelegramId(1).firstOrNull() ?: defaultTelegramUser()
+				userId = user.idValue()
+			}
+		}
 
 //        @AfterAll
 //        @JvmStatic
@@ -48,5 +48,5 @@ internal interface TransactionalTest {
 //                dropSchema()
 //            }
 //        }
-    }
+	}
 }
