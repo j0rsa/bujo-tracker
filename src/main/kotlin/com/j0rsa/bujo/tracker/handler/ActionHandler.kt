@@ -50,10 +50,13 @@ object ActionHandler {
 			ActionService.findOneBy(actionIdPathLens(req), userIdLens(req))
 				.map {
 					ValueService.create(valueLens(req), it)
-					it.toRow()
+					it.idValue()
 				}
 		}
-		responseFrom(result)
+		when (result) {
+			is Either.Left -> response(result)
+			is Either.Right -> actionIdLens(result.b, Response(CREATED))
+		}
 	}
 
 	fun update() = { req: Request ->
