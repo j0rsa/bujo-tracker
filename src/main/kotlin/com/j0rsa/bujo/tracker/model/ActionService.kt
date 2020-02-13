@@ -46,8 +46,8 @@ object ActionService {
 
 	fun findAll(userId: UserId) = ActionRepository.findAll(userId).toList().map { it.toRow() }
 
-	fun findOneBy(actionId: ActionId, userId: UserId): Either<TrackerError, ActionRow> =
-		findOne(actionId, userId).map { it.toRow() }
+	fun findOneBy(actionId: ActionId, userId: UserId): Either<TrackerError, Action> =
+		findOne(actionId, userId)
 
 	private fun findOne(actionId: ActionId, userId: UserId): Either<TrackerError, Action> {
 		val actions = ActionRepository.findOneBy(actionId, userId).toList()

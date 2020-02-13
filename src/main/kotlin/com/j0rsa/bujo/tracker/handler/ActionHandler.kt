@@ -10,6 +10,7 @@ import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.multipleActionLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.response
 import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.valueLens
 import com.j0rsa.bujo.tracker.model.*
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -39,7 +40,18 @@ object ActionHandler {
 
 	fun findOne() = { req: Request ->
 		val result = tx {
+			ActionService.findOneBy(actionIdPathLens(req), userIdLens(req)).map { it.toRow() }
+		}
+		responseFrom(result)
+	}
+
+	fun addValue() = { req: Request ->
+		val result = tx {
 			ActionService.findOneBy(actionIdPathLens(req), userIdLens(req))
+				.map {
+					ValueService.create(valueLens(req), it)
+					it.toRow()
+				}
 		}
 		responseFrom(result)
 	}
