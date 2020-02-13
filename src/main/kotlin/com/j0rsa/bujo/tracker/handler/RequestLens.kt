@@ -29,7 +29,8 @@ object RequestLens {
     val tagsLens = Body.auto<List<Tag>>().toLens()
     val actionLens = Body.auto<ActionView>().toLens()
     val multipleActionLens = Body.auto<List<ActionView>>().toLens()
-    val actionIdLens = Path.uuid().map(::ActionId).of("id")
+    val actionIdLens = Body.auto<ActionId>().toLens()
+    val actionIdPathLens = Path.uuid().map(::ActionId).of("id")
 
     fun response(result: Either.Left<TrackerError>): Response = when (result.a) {
         TrackerError.NotFound -> Response(Status.NOT_FOUND)

@@ -4,6 +4,7 @@ import arrow.core.Either
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.TransactionManager.tx
 import com.j0rsa.bujo.tracker.handler.RequestLens.actionIdLens
+import com.j0rsa.bujo.tracker.handler.RequestLens.actionIdPathLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.actionLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.multipleActionLens
@@ -20,13 +21,13 @@ object ActionHandler {
     fun createWithHabit() = { req: Request ->
         when (val actionResult = tx { ActionService.create(req.toDtoWithHabit()) }) {
             is Either.Left -> response(actionResult)
-            is Either.Right -> Response(CREATED).body(actionResult.b.toString())
+            is Either.Right -> actionIdLens(actionResult.b, Response(CREATED))
         }
     }
 
     fun createWithTags() = { req: Request ->
         val actionId = tx { ActionService.create(req.toDtoWithTags()) }
-        Response(CREATED).body(actionId.toString())
+        actionIdLens(actionId, Response(CREATED))
     }
 
     fun findAll() = { req: Request ->
@@ -38,7 +39,7 @@ object ActionHandler {
 
     fun findOne() = { req: Request ->
         val result = tx {
-            ActionService.findOneBy(actionIdLens(req), userIdLens(req))
+            ActionService.findOneBy(actionIdPathLens(req), userIdLens(req))
         }
         responseFrom(result)
     }
@@ -52,7 +53,7 @@ object ActionHandler {
 
     fun delete() = { req: Request ->
         val result = tx {
-            ActionService.deleteOne(actionIdLens(req), userIdLens(req))
+            ActionService.deleteOne(actionIdPathLens(req), userIdLens(req))
         }
         when (result) {
             is Either.Left -> response(result)
