@@ -1,40 +1,48 @@
 package com.j0rsa.bujo.tracker.handler
 
-import arrow.core.Either
-import com.j0rsa.bujo.tracker.TrackerError
+import com.j0rsa.bujo.tracker.Serializer.fromJson
 import com.j0rsa.bujo.tracker.model.ActionId
 import com.j0rsa.bujo.tracker.model.HabitId
 import com.j0rsa.bujo.tracker.model.UserId
-import org.http4k.core.Body
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Header
-import org.http4k.lens.Path
-import org.http4k.lens.long
-import org.http4k.lens.uuid
-import org.http4k.format.Gson.auto
+import io.vertx.ext.web.RoutingContext
+
 
 object RequestLens {
-	val habitInfoLens = Body.auto<HabitInfoView>().toLens()
-	val habitLens = Body.auto<Habit>().toLens()
-	val multipleHabitsLens = Body.auto<List<HabitsInfoView>>().toLens()
-	val habitIdLens = Path.uuid().map(::HabitId).of("id")
+	val habitLens = Body.auto<Habit>()
+	val habitIdLens = Path.of("id").map(::HabitId)
 
-	val userIdLens = Header.uuid().map(::UserId).required("X-Auth-Id")
-	val userIdResponseLens = Body.auto<UserId>().toLens()
-	val telegramUserIdLens = Path.long().of("telegram_id")
-	val telegramUserLens = Body.auto<User>().toLens()
+	val userIdLens = Header.required("X-Auth-Id").map(::UserId)
+	val telegramUserIdLens = Path.of("telegram_id").map(String::toLong)
+	val telegramUserLens = Body.auto<User>()
 
-	val tagLens = Body.auto<Tag>().toLens()
-	val tagsLens = Body.auto<List<Tag>>().toLens()
-	val actionLens = Body.auto<ActionView>().toLens()
-	val multipleActionLens = Body.auto<List<ActionView>>().toLens()
-	val actionIdLens = Body.auto<ActionId>().toLens()
-	val actionIdPathLens = Path.uuid().map(::ActionId).of("id")
-	val valueLens = Body.auto<ValueRow>().toLens()
+	val tagLens = Body.auto<Tag>()
+	val actionLens = Body.auto<ActionView>()
+	val actionIdPathLens = Path.of("id").map(::ActionId)
+	val valueLens = Body.auto<ValueRow>()
+}
 
-	fun response(result: Either.Left<TrackerError>): Response = when (result.a) {
-		TrackerError.NotFound -> Response(Status.NOT_FOUND)
-		is TrackerError.SyStemError -> Response(Status.INTERNAL_SERVER_ERROR)
+object Path {
+	fun of(paramName: String) = Mapping { ctx: RoutingContext ->
+		ctx.request().getParam(paramName)
 	}
+}
+
+object Header {
+	fun required(name: String) = Mapping { ctx: RoutingContext ->
+		val header = ctx.request().getHeader(name)
+		checkNotNull(header)
+		header
+	}
+}
+
+object Body {
+	inline fun <reified T> auto() = Mapping { ctx: RoutingContext ->
+		fromJson<T>(ctx.bodyAsString)
+	}
+}
+
+class Mapping<IN, OUT>(val fn: (IN) -> OUT) {
+	inline fun <reified NEXT> map(crossinline nextOut: (OUT) -> NEXT): Mapping<IN, NEXT> = Mapping { nextOut(fn(it)) }
+
+	operator fun invoke(value: IN): OUT = fn(value)
 }

@@ -1,51 +1,42 @@
 package com.j0rsa.bujo.tracker.handler
 
 import arrow.core.Either
+import arrow.core.Either.Right
 import com.j0rsa.bujo.tracker.TrackerError
-import com.j0rsa.bujo.tracker.TransactionManager
+import com.j0rsa.bujo.tracker.blockingTx
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
-import com.j0rsa.bujo.tracker.handler.RequestLens.habitInfoLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitLens
-import com.j0rsa.bujo.tracker.handler.RequestLens.multipleHabitsLens
-import com.j0rsa.bujo.tracker.handler.RequestLens.response
 import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
+import com.j0rsa.bujo.tracker.handler.ResponseState.*
 import com.j0rsa.bujo.tracker.model.*
 import com.j0rsa.bujo.tracker.model.Period.Day
 import com.j0rsa.bujo.tracker.model.Period.Week
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status.Companion.CREATED
-import org.http4k.core.Status.Companion.NO_CONTENT
-import org.http4k.core.Status.Companion.OK
+import io.vertx.core.Vertx
+import io.vertx.ext.web.RoutingContext
 import org.joda.time.DateTime
 import java.math.BigDecimal
 
 object HabitHandler {
 
-	fun create() = { req: Request ->
-		val habitId = TransactionManager.tx { HabitService.create(req.toHabitDto()) }
-		Response(CREATED).body(habitId.toString())
+	fun create(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<HabitId>> = { request ->
+		val habitId = blockingTx(vertx) { HabitService.create(request.toHabitDto()) }
+		Right(Response(CREATED, habitId))
 	}
 
-	fun delete(): (Request) -> Response = { req: Request ->
-		val result = TransactionManager.tx {
-			HabitService.deleteOne(habitIdLens(req), userIdLens(req))
-		}
-		when (result) {
-			is Either.Left -> response(result)
-			is Either.Right -> Response(NO_CONTENT)
-		}
+	fun delete(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<Unit>> = { request ->
+		blockingTx(vertx) {
+			HabitService.deleteOne(habitIdLens(request), userIdLens(request))
+		}.map { Response<Unit>(NO_CONTENT) }
 	}
 
-	fun findOne() = { req: Request ->
-		val result = TransactionManager.tx {
-			HabitService.findOneBy(habitIdLens(req), userIdLens(req))
+	fun findOne(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<HabitInfoView>> = { request ->
+		blockingTx(vertx) {
+			HabitService.findOneBy(habitIdLens(request), userIdLens(request))
 		}.map {
 			val streak = findStreaks(it)
 			val habitInfo = HabitInfoView(it.toView(), streak)
-			habitInfoLens(habitInfo, Response(OK))
+			Response(OK, habitInfo)
 		}
-		responseFrom(result)
 	}
 
 	private fun findStreaks(it: HabitRow): StreakRow = when (it.period) {
@@ -58,28 +49,22 @@ object HabitHandler {
 		Week -> ActionService.findCurrentStreakForWeek(it.id!!, it.numberOfRepetitions)
 	}
 
-	fun findAll() = { req: Request ->
-		val habits = TransactionManager.tx {
-			HabitService.findAll(userIdLens(req))
+	fun findAll(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<List<HabitsInfoView>>> = { request ->
+		val habits = blockingTx(vertx) {
+			HabitService.findAll(userIdLens(request))
 		}.map {
 			HabitsInfoView(it.toView(), findCurrentStreaks(it))
 		}
-		multipleHabitsLens(habits, Response(OK))
+		Right(Response(OK, habits))
 	}
 
-	fun update() = { req: Request ->
-		val result = TransactionManager.tx {
-			HabitService.update(req.toHabitDto())
-		}.map { habitLens(it.toView(), Response(OK)) }
-		responseFrom(result)
+	fun update(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<HabitView>> = { request ->
+		blockingTx(vertx) {
+			HabitService.update(request.toHabitDto())
+		}.map { Response(OK, it.toView()) }
 	}
 
-	private fun responseFrom(result: Either<TrackerError, Response>): Response = when (result) {
-		is Either.Left -> response(result)
-		is Either.Right -> result.b
-	}
-
-	private fun Request.toHabitDto() = HabitRow(habitLens(this), userIdLens(this))
+	private fun RoutingContext.toHabitDto() = HabitRow(habitLens(this), userIdLens(this))
 }
 
 data class Habit(

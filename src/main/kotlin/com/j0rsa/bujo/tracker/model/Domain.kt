@@ -333,12 +333,14 @@ fun dropSchema() {
 }
 
 inline class HabitId(val value: UUID) {
+	constructor(s: String): this(UUID.fromString(s))
 	companion object {
 		fun randomValue() = HabitId(UUID.randomUUID())
 	}
 }
 
 inline class UserId(val value: UUID) {
+	constructor(s: String): this(UUID.fromString(s))
 	companion object {
 		fun randomValue() = UserId(UUID.randomUUID())
 	}
@@ -351,6 +353,7 @@ inline class TagId(val value: UUID) {
 }
 
 inline class ActionId(val value: UUID) {
+	constructor(s: String): this(UUID.fromString(s))
 	companion object {
 		fun randomValue() = ActionId(UUID.randomUUID())
 	}

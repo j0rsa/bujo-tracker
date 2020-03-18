@@ -1,33 +1,29 @@
 package com.j0rsa.bujo.tracker.handler
 
 import arrow.core.Either
-import com.j0rsa.bujo.tracker.TransactionManager
-import com.j0rsa.bujo.tracker.handler.RequestLens.response
+import arrow.core.Right
+import com.j0rsa.bujo.tracker.TrackerError
+import com.j0rsa.bujo.tracker.blockingTx
 import com.j0rsa.bujo.tracker.handler.RequestLens.tagLens
-import com.j0rsa.bujo.tracker.handler.RequestLens.tagsLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
+import com.j0rsa.bujo.tracker.handler.ResponseState.OK
 import com.j0rsa.bujo.tracker.model.TagId
 import com.j0rsa.bujo.tracker.model.TagService
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
+import io.vertx.core.Vertx
+import io.vertx.ext.web.RoutingContext
 
 object TagHandler {
-	fun findAll() = { req: Request ->
-		val tags = TransactionManager.tx {
+	fun findAll(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<List<TagRow>>> = { req ->
+		val tags = blockingTx(vertx) {
 			TagService.findAll(userIdLens(req))
 		}
-		tagsLens(tags, Response(Status.OK))
+		Right(Response(OK, tags))
 	}
 
-	fun update() = { req: Request ->
-		val newTag = TransactionManager.tx {
+	fun update(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<TagRow>> = { req ->
+		blockingTx(vertx) {
 			TagService.update(userIdLens(req), tagLens(req))
-		}
-		when (newTag) {
-			is Either.Left -> response(newTag)
-			is Either.Right -> tagLens(newTag.b, Response(Status.OK))
-		}
+		}.map { Response(OK, it) }
 	}
 }
 

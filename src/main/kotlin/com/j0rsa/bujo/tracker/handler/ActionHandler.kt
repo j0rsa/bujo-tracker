@@ -1,90 +1,70 @@
 package com.j0rsa.bujo.tracker.handler
 
 import arrow.core.Either
+import arrow.core.Right
 import com.j0rsa.bujo.tracker.TrackerError
-import com.j0rsa.bujo.tracker.TransactionManager.tx
-import com.j0rsa.bujo.tracker.handler.RequestLens.actionIdLens
+import com.j0rsa.bujo.tracker.blockingTx
 import com.j0rsa.bujo.tracker.handler.RequestLens.actionIdPathLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.actionLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.habitIdLens
-import com.j0rsa.bujo.tracker.handler.RequestLens.multipleActionLens
-import com.j0rsa.bujo.tracker.handler.RequestLens.response
 import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.valueLens
+import com.j0rsa.bujo.tracker.handler.ResponseState.*
 import com.j0rsa.bujo.tracker.model.*
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.core.Status.Companion.CREATED
-import org.http4k.core.Status.Companion.OK
+import io.vertx.core.Vertx
+import io.vertx.ext.web.RoutingContext
 
 object ActionHandler {
-	fun createWithHabit() = { req: Request ->
-		when (val actionResult = tx { ActionService.create(req.toDtoWithHabit()) }) {
-			is Either.Left -> response(actionResult)
-			is Either.Right -> actionIdLens(actionResult.b, Response(CREATED))
-		}
+	fun createWithHabit(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<ActionId>> = { req ->
+		blockingTx(vertx) {
+			ActionService.create(req.toDtoWithHabit())
+		}.map { Response(CREATED, it) }
 	}
 
-	fun createWithTags() = { req: Request ->
-		val actionId = tx { ActionService.create(req.toDtoWithTags()) }
-		actionIdLens(actionId, Response(CREATED))
+	fun createWithTags(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<ActionId>> = { req ->
+		val actionId = blockingTx(vertx) { ActionService.create(req.toDtoWithTags()) }
+		Right(Response(CREATED, actionId))
 	}
 
-	fun findAll() = { req: Request ->
-		val actions = tx {
+	fun findAll(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<List<ActionView>>> = { req ->
+		val actions = blockingTx(vertx) {
 			ActionService.findAll(userIdLens(req))
 		}.map { it.toView() }
-		multipleActionLens(actions, Response(OK))
+		Right(Response(OK, actions))
 	}
 
-	fun findOne() = { req: Request ->
-		val result = tx {
+	fun findOne(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<ActionRow>> = { req ->
+		blockingTx(vertx) {
 			ActionService.findOneBy(actionIdPathLens(req), userIdLens(req)).map { it.toRow() }
-		}
-		responseFrom(result)
+		}.map { Response(OK, it) }
 	}
 
-	fun addValue() = { req: Request ->
-		val result = tx {
+	fun addValue(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<ActionId>> = { req ->
+		blockingTx(vertx) {
 			ActionService.findOneBy(actionIdPathLens(req), userIdLens(req))
 				.map {
 					ValueService.create(valueLens(req), it)
 					it.idValue()
 				}
-		}
-		when (result) {
-			is Either.Left -> response(result)
-			is Either.Right -> actionIdLens(result.b, Response(CREATED))
-		}
+		}.map { Response(CREATED, it) }
 	}
 
-	fun update() = { req: Request ->
-		val result = tx {
+	fun update(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<ActionRow>> = { req ->
+		blockingTx(vertx) {
 			ActionService.update(req.toDtoWithTags())
-		}
-		responseFrom(result)
+		}.map { Response(OK, it) }
 	}
 
-	fun delete() = { req: Request ->
-		val result = tx {
+	fun delete(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<Unit>> = { req ->
+		blockingTx(vertx) {
 			ActionService.deleteOne(actionIdPathLens(req), userIdLens(req))
-		}
-		when (result) {
-			is Either.Left -> response(result)
-			is Either.Right -> Response(Status.NO_CONTENT)
-		}
+		}.map { Response<Unit>(NO_CONTENT) }
 	}
 
-	private fun responseFrom(result: Either<TrackerError, ActionRow>): Response = when (result) {
-		is Either.Left -> response(result)
-		is Either.Right -> actionLens(result.b.toView(), Response(OK))
-	}
-
-	private fun Request.toDtoWithHabit() =
+	private fun RoutingContext.toDtoWithHabit() =
 		ActionRow(actionLens(this), userIdLens(this), habitIdLens(this))
 
-	private fun Request.toDtoWithTags() = BaseActionRow(actionLens(this), userIdLens(this))
+	private fun RoutingContext.toDtoWithTags() = BaseActionRow(actionLens(this), userIdLens(this))
 }
 
 data class ActionView(

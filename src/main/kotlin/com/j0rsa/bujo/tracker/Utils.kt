@@ -1,5 +1,11 @@
 package com.j0rsa.bujo.tracker
 
+import io.vertx.core.Handler
+import io.vertx.core.Promise
+import io.vertx.core.Vertx
+import io.vertx.kotlin.coroutines.awaitResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import org.joda.time.Days
 import org.joda.time.Weeks
@@ -20,3 +26,17 @@ interface Logging
 
 inline fun <reified T : Logging> T.logger(): Logger =
 	LoggerFactory.getLogger(getClassForLogging(T::class.java).name + " w/interface")
+
+
+suspend fun <T> execBlocking(vx: Vertx, fn: () -> T): T = withContext(Dispatchers.Default) {
+	val handler = Handler { promise: Promise<T> ->
+		try {
+			promise.complete(fn())
+		} catch (t: Throwable) {
+			promise.fail(t)
+		}
+	}
+	awaitResult<T> { vx.executeBlocking(handler, it) }
+}
+
+suspend fun <T> blockingTx(vx: Vertx, fn: () -> T) = execBlocking(vx) { TransactionManager.tx { fn() } }

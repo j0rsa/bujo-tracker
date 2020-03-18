@@ -1,76 +1,112 @@
 package com.j0rsa.bujo.tracker
 
-import com.j0rsa.bujo.tracker.handler.ActionHandler
-import com.j0rsa.bujo.tracker.handler.HabitHandler
-import com.j0rsa.bujo.tracker.handler.TagHandler
-import com.j0rsa.bujo.tracker.handler.UserHandler
+import arrow.core.Either
+import com.google.gson.Gson
+import com.j0rsa.bujo.tracker.handler.*
 import com.j0rsa.bujo.tracker.model.createSchema
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.core.then
-import org.http4k.filter.ServerFilters.CatchLensFailure
-import org.http4k.routing.bind
-import org.http4k.routing.routes
-import org.http4k.server.Http4kServer
-import org.http4k.server.Jetty
-import org.http4k.server.asServer
-import org.slf4j.LoggerFactory
+import io.vertx.core.Vertx
+import io.vertx.core.http.HttpServerResponse
+import io.vertx.ext.healthchecks.HealthCheckHandler
+import io.vertx.ext.web.Route
+import io.vertx.ext.web.Router
+import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.kotlin.core.deployVerticleAwait
+import io.vertx.kotlin.core.http.listenAwait
+import io.vertx.kotlin.coroutines.CoroutineVerticle
+import io.vertx.kotlin.coroutines.dispatcher
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-fun main() {
-	val server = startApp()
-	server.block()
-}
+class App : CoroutineVerticle() {
+	override suspend fun start() {
+		dbMigrate()
 
-fun startApp(): Http4kServer {
-	val logger = LoggerFactory.getLogger("main")
-	dbMigrate()
+		val router = Router.router(vertx)
+		router.route().handler(BodyHandler.create())
+		val hc = HealthCheckHandler.create(vertx)
+		router.get("/health").handler(hc);
 
-	val app = CatchLensFailure.then(
-		routes(
-			"/health" bind Method.GET to { Response(Status.OK) },
-			"/habits" bind routes(
-				"/" bind Method.POST to HabitHandler.create(),
-				"/" bind Method.GET to HabitHandler.findAll(),
-				"/{id}" bind routes(
-					Method.GET to HabitHandler.findOne(),
-					Method.POST to HabitHandler.update(),
-					Method.DELETE to HabitHandler.delete()
-				)
-			),
-			"/tags" bind routes(
-				"/" bind Method.GET to TagHandler.findAll(),
-				"/{id}" bind routes(
-					Method.POST to TagHandler.update()
-				)
-			),
-			"/actions" bind routes(
-				"/" bind Method.POST to ActionHandler.createWithTags(),
-				"/" bind Method.GET to ActionHandler.findAll(),
-				"/{id}" bind routes(
-					"/" bind Method.GET to ActionHandler.findOne(),
-					"/" bind Method.POST to ActionHandler.update(),
-					"/" bind Method.DELETE to ActionHandler.delete(),
-					"/value" bind Method.POST to ActionHandler.addValue()
-				),
-				"/habit/{id}" bind Method.POST to ActionHandler.createWithHabit()
-			),
-			"/users" bind routes(
-				"/{telegram_id}" bind Method.GET to UserHandler.findUser(),
-				"/" bind Method.POST to UserHandler.createOrUpdateUser()
-			)
-		)
-	)
+		router.post("/habits").coroutineHandler { HabitHandler.create(vertx)(it) }
+		router.get("/habits").coroutineHandler { HabitHandler.findAll(vertx)(it) }
+		router.get("/habits/:id").coroutineHandler { HabitHandler.findOne(vertx)(it) }
+		router.post("/habits/:id").coroutineHandler { HabitHandler.update(vertx)(it) }
+		router.delete("/habits/:id").coroutineHandler { HabitHandler.delete(vertx)(it) }
 
-	logger.info("Starting server...")
-	val server = app.asServer(Jetty(Config.app.port)).start()
-	logger.info("Server started on port ${Config.app.port}")
-	return server
-}
+		router.get("/tags").coroutineHandler { TagHandler.findAll(vertx)(it) }
+		router.post("/tags/:id").coroutineHandler { TagHandler.update(vertx)(it) }
 
-private fun dbMigrate() {
-//    TransactionManager.migrate()
-	TransactionManager.tx {
-		createSchema()
+		router.post("/actions").coroutineHandler { ActionHandler.createWithTags(vertx)(it) }
+		router.get("/actions").coroutineHandler { ActionHandler.findAll(vertx)(it) }
+		router.get("/actions/:id").coroutineHandler { ActionHandler.findOne(vertx)(it) }
+		router.post("/actions/:id").coroutineHandler { ActionHandler.update(vertx)(it) }
+		router.delete("/actions/:id").coroutineHandler { ActionHandler.delete(vertx)(it) }
+		router.post("/actions/:id/value").coroutineHandler { ActionHandler.addValue(vertx)(it) }
+		router.post("/actions/habit/:id").coroutineHandler { ActionHandler.createWithHabit(vertx)(it) }
+
+		router.get("/users/:telegram_id").coroutineHandler { UserHandler.findUser(vertx)(it) }
+		router.post("/users").coroutineHandler { UserHandler.createOrUpdateUser(vertx)(it) }
+
+		logger.info("Server on port ${Config.app.port}")
+		vertx.createHttpServer()
+			.requestHandler(router)
+			.listenAwait(Config.app.port)
 	}
+
+	companion object : Logging {
+		val logger = logger()
+	}
+
+	private suspend fun dbMigrate() {
+//    TransactionManager.migrate()
+		blockingTx(vertx) {
+			createSchema()
+		}
+	}
+}
+
+suspend fun main() {
+	val vertx = Vertx.vertx()
+	try {
+		vertx.deployVerticleAwait("com.j0rsa.bujo.tracker.App")
+		println("Application started")
+	} catch (exception: Throwable) {
+		println("Could not start application")
+		exception.printStackTrace()
+	}
+}
+
+inline fun <reified T> Route.coroutineHandler(crossinline fn: suspend (RoutingContext) -> Either<TrackerError, Response<T>>): Route =
+	handler { ctx ->
+		GlobalScope.launch(ctx.vertx().dispatcher()) {
+			try {
+				ctx.response()
+				when (val result = fn(ctx)) {
+					is Either.Left -> errorResponse(result, ctx.response()).end()
+					is Either.Right -> result.b.response(ctx.response())
+				}
+			} catch (e: Exception) {
+				ctx.fail(e)
+			}
+		}
+	}
+
+fun errorResponse(result: Either.Left<TrackerError>, response: HttpServerResponse): HttpServerResponse =
+	when (result.a) {
+		TrackerError.NotFound -> response.setStatusCode(404)
+		is TrackerError.SyStemError -> response.setStatusCode(500)
+	}
+
+inline fun <reified T> Response<T>.response(response: HttpServerResponse) {
+	response.statusCode = this.state.value
+	this.value?.also {
+		response.putHeader("Content-Type", "application/json")
+		response.end(Serializer.toJson(it));
+	} ?: response.end()
+}
+
+object Serializer {
+	val gson = Gson()
+	inline fun <reified T> toJson(o: T): String = gson.toJson(o, T::class.java)
+	inline fun <reified T> fromJson(s: String): T = gson.fromJson(s, T::class.java)
 }
