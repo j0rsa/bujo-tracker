@@ -49,14 +49,14 @@ object HabitHandler {
 		Week -> ActionService.findCurrentStreakForWeek(it.id!!, it.numberOfRepetitions)
 	}
 
-	fun findAll(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<List<HabitsInfoView>>> = { request ->
-		val habits = blockingTx(vertx) {
-			HabitService.findAll(userIdLens(request))
-		}.map {
-			HabitsInfoView(it.toView(), findCurrentStreaks(it))
+	fun findAll(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<List<HabitsInfoView>>> =
+		{ request ->
+			val habits = blockingTx(vertx) {
+				HabitService.findAll(userIdLens(request))
+					.map { HabitsInfoView(it.toView(), findCurrentStreaks(it)) }
+			}
+			Right(Response(OK, habits))
 		}
-		Right(Response(OK, habits))
-	}
 
 	fun update(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<HabitView>> = { request ->
 		blockingTx(vertx) {
