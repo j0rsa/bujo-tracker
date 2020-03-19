@@ -17,19 +17,25 @@ object ActionService {
 
 		return when (foundHabits.size) {
 			0 -> Left(NotFound)
-			1 -> {
-				val tags = TagService.createTagsIfNotExist(foundUser, row.tags)
-				val action = Action.new(ActionId.randomValue().value) {
-					description = row.description
-					user = foundUser
-					this.tags = SizedCollection(tags)
-					habit = foundHabits.first()
-				}
-				ValueService.create(row.values, action)
-				Right(action.idValue())
-			}
-			else -> Left(SyStemError("Found too many records"))
+			1 -> createActionForHabit(foundUser, row, foundHabits)
+			else -> Left(SystemError("Found too many records"))
 		}
+	}
+
+	private fun createActionForHabit(
+		foundUser: User,
+		row: ActionRow,
+		foundHabits: List<Habit>
+	): Either<Nothing, ActionId> {
+		val tags = TagService.createTagsIfNotExist(foundUser, row.tags)
+		val action = Action.new(ActionId.randomValue().value) {
+			description = row.description
+			user = foundUser
+			this.tags = SizedCollection(tags)
+			habit = foundHabits.first()
+		}
+		ValueService.create(row.values, action)
+		return Right(action.idValue())
 	}
 
 	fun create(row: BaseActionRow): ActionId {
@@ -54,7 +60,7 @@ object ActionService {
 		return when (actions.size) {
 			0 -> Left(NotFound)
 			1 -> Right(actions.first())
-			else -> Left(SyStemError("found too many actions"))
+			else -> Left(SystemError("found too many actions"))
 		}
 	}
 

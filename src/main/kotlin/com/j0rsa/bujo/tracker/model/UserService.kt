@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Right
 import com.j0rsa.bujo.tracker.NotFound
-import com.j0rsa.bujo.tracker.SyStemError
+import com.j0rsa.bujo.tracker.SystemError
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.handler.UserInfo
 
@@ -17,7 +17,7 @@ object UserService {
 		return when (foundUsers.size) {
 			0 -> Left(NotFound)
 			1 -> Right(foundUsers.first().toInfo())
-			else -> Left(SyStemError("found too many actions"))
+			else -> Left(SystemError("found too many actions"))
 		}
 	}
 

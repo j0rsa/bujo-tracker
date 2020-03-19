@@ -6,4 +6,4 @@ sealed class TrackerError {
 }
 
 typealias NotFound = TrackerError.NotFound
-typealias SyStemError = TrackerError.SyStemError
+typealias SystemError = TrackerError.SyStemError

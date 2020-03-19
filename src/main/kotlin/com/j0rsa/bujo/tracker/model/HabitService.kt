@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.extensions.fx
 import arrow.core.fix
 import com.j0rsa.bujo.tracker.NotFound
-import com.j0rsa.bujo.tracker.SyStemError
+import com.j0rsa.bujo.tracker.SystemError
 import com.j0rsa.bujo.tracker.TrackerError
 import org.jetbrains.exposed.sql.SizedCollection
 
@@ -50,7 +50,7 @@ object HabitService {
 		return when (habits.size) {
 			0 -> Either.Left(NotFound)
 			1 -> Either.Right(habits.first())
-			else -> Either.Left(SyStemError("Found too many records"))
+			else -> Either.Left(SystemError("Found too many records"))
 		}
 	}
 
