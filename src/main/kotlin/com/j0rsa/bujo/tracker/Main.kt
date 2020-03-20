@@ -1,8 +1,9 @@
 package com.j0rsa.bujo.tracker
 
 import arrow.core.Either
-import com.google.gson.Gson
 import com.j0rsa.bujo.tracker.handler.*
+import com.j0rsa.bujo.tracker.handler.ResponseState.INTERNAL_SERVER_ERROR
+import com.j0rsa.bujo.tracker.handler.ResponseState.NOT_FOUND
 import com.j0rsa.bujo.tracker.model.createSchema
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerResponse
@@ -93,8 +94,8 @@ inline fun <reified T> Route.coroutineHandler(crossinline fn: suspend (RoutingCo
 
 fun errorResponse(result: Either.Left<TrackerError>, response: HttpServerResponse): HttpServerResponse =
 	when (result.a) {
-		TrackerError.NotFound -> response.setStatusCode(404)
-		is TrackerError.SyStemError -> response.setStatusCode(500)
+		TrackerError.NotFound -> response.setStatusCode(NOT_FOUND.value)
+		is TrackerError.SyStemError -> response.setStatusCode(INTERNAL_SERVER_ERROR.value)
 	}
 
 inline fun <reified T> Response<T>.response(response: HttpServerResponse) {
@@ -103,10 +104,4 @@ inline fun <reified T> Response<T>.response(response: HttpServerResponse) {
 		response.putHeader("Content-Type", "application/json")
 		response.end(Serializer.toJson(it));
 	} ?: response.end()
-}
-
-object Serializer {
-	val gson = Gson()
-	inline fun <reified T> toJson(o: T): String = gson.toJson(o, T::class.java)
-	inline fun <reified T> fromJson(s: String): T = gson.fromJson(s, T::class.java)
 }
