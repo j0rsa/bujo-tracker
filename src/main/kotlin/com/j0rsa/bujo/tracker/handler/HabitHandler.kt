@@ -31,12 +31,13 @@ object HabitHandler {
 
 	fun findOne(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<HabitInfoView>> = { request ->
 		blockingTx(vertx) {
-			HabitService.findOneBy(habitIdLens(request), userIdLens(request))
-		}.map {
-			val streak = findStreaks(it)
-			val habitInfo = HabitInfoView(it.toView(), streak)
-			Response(OK, habitInfo)
-		}
+			HabitService
+				.findOneBy(habitIdLens(request), userIdLens(request))
+				.map {
+					val streak = findStreaks(it)
+					HabitInfoView(it.toView(), streak)
+				}
+		}.map { Response(OK, it) }
 	}
 
 	private fun findStreaks(it: HabitRow): StreakRow = when (it.period) {
