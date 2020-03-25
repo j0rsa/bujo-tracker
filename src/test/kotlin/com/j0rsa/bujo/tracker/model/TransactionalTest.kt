@@ -34,7 +34,6 @@ internal interface TransactionalTest {
 		fun beforeAll() {
 //            TransactionManager.migrate()
 			TransactionManager.tx {
-				createSchema()
 				user = User.find { Users.telegramId.isNull() }.firstOrNull() ?: defaultUser()
 				telegramUser = UserRepository.findOneByTelegramId(1).firstOrNull() ?: defaultTelegramUser()
 				userId = user.idValue()

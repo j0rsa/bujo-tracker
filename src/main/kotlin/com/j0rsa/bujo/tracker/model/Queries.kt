@@ -4,6 +4,8 @@ import com.j0rsa.bujo.tracker.TransactionManager.currentTransaction
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
+import org.jetbrains.exposed.sql.statements.jdbc.JdbcPreparedStatementImpl
 import org.joda.time.DateTime
 import org.postgresql.jdbc.PgArray
 import java.math.BigDecimal
@@ -15,7 +17,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmErasure
 
 fun String.exec(vararg params: Param): ResultSet? =
-	with(currentTransaction().connection.prepareStatement(this)) {
+	with((currentTransaction().connection.prepareStatement(this, false) as JdbcPreparedStatementImpl).statement) {
 		params.forEachIndexed { index, param ->
 			this.setParam(param, index + 1)
 		}
@@ -160,9 +162,10 @@ internal class StringArrayColumnType : ColumnType() {
 		}
 	}
 
-	override fun setParameter(stmt: PreparedStatement, index: Int, value: Any?) {
+	override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
 		if (value is List<*>) {
-			stmt.setArray(index, stmt.connection.createArrayOf("varchar", value.toTypedArray()))
+			val stmtOriginal = (stmt as JdbcPreparedStatementImpl).statement
+			stmtOriginal.setArray(index, stmtOriginal.connection.createArrayOf("varchar", value.toTypedArray()))
 		} else {
 			super.setParameter(stmt, index, value)
 		}

@@ -4,7 +4,6 @@ import arrow.core.Either
 import com.j0rsa.bujo.tracker.handler.*
 import com.j0rsa.bujo.tracker.handler.ResponseState.INTERNAL_SERVER_ERROR
 import com.j0rsa.bujo.tracker.handler.ResponseState.NOT_FOUND
-import com.j0rsa.bujo.tracker.model.createSchema
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.ext.healthchecks.HealthCheckHandler
@@ -60,9 +59,6 @@ class App : CoroutineVerticle() {
 
 	private suspend fun dbMigrate() {
 //    TransactionManager.migrate()
-		blockingTx(vertx) {
-			createSchema()
-		}
 	}
 }
 
