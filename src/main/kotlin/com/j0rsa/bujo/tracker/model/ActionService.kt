@@ -101,6 +101,8 @@ object ActionService {
 		return StreakRow(currentStreak, maxStreakOrZero(result))
 	}
 
+	fun hasActionToday(habitId: HabitId): Boolean = ActionRepository.findTodayActions(habitId).isNotEmpty()
+
 	private val isEndDateCurrentWeek = { record: StreakRecord ->
 		record.endDate.isCurrentWeek()
 	}

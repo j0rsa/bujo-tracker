@@ -1,6 +1,10 @@
 package com.j0rsa.bujo.tracker.model
 
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.jodatime.CurrentDateTime
+import org.jetbrains.exposed.sql.jodatime.day
+import org.jetbrains.exposed.sql.jodatime.month
+import org.joda.time.DateTime
 import java.math.BigDecimal
 
 object ActionRepository {
@@ -15,6 +19,16 @@ object ActionRepository {
 				})
 			}
 
+		return Action.wrapRows(query).toList()
+	}
+
+	fun findTodayActions(habitId: HabitId): List<Action> {
+		val query = Actions.innerJoin(Habits).slice(Actions.columns).select {
+			Habits.id eq habitId.value and Actions.created.between(
+				DateTime.now().withTimeAtStartOfDay(),
+				DateTime.now().plusDays(1).withTimeAtStartOfDay()
+			)
+		}
 		return Action.wrapRows(query).toList()
 	}
 

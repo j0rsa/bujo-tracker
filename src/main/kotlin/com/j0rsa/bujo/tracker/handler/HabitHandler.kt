@@ -35,7 +35,8 @@ object HabitHandler {
 				.findOneBy(habitIdLens(request), userIdLens(request))
 				.map {
 					val streak = findStreaks(it)
-					HabitInfoView(it.toView(), streak)
+					val done = ActionService.hasActionToday(it.id!!)
+					HabitInfoView(it.toView(), streak, done)
 				}
 		}.map { Response(OK, it) }
 	}
@@ -54,7 +55,11 @@ object HabitHandler {
 		{ request ->
 			val habits = blockingTx(vertx) {
 				HabitService.findAll(userIdLens(request))
-					.map { HabitsInfoView(it.toView(), findCurrentStreaks(it)) }
+					.map {
+						val streak = findCurrentStreaks(it)
+						val done = ActionService.hasActionToday(it.id!!)
+						HabitsInfoView(it.toView(), streak, done)
+					}
 			}
 			Right(Response(OK, habits))
 		}
@@ -83,12 +88,14 @@ typealias HabitView = Habit
 
 data class HabitsInfoView(
 	val habit: Habit,
-	val currentStreak: BigDecimal = BigDecimal.ZERO
+	val currentStreak: BigDecimal = BigDecimal.ZERO,
+	val done: Boolean
 )
 
 data class HabitInfoView(
 	val habit: Habit,
-	val streakRow: StreakRow
+	val streakRow: StreakRow,
+	val done: Boolean
 )
 
 data class StreakRow(

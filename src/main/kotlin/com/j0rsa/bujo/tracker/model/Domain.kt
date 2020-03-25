@@ -1,11 +1,11 @@
 package com.j0rsa.bujo.tracker.model
 
 import com.j0rsa.bujo.tracker.handler.*
-import com.j0rsa.bujo.tracker.model.Action.Companion.referrersOn
-import com.j0rsa.bujo.tracker.model.ValueTemplates.nullable
-import com.j0rsa.bujo.tracker.model.Values.nullable
-import org.jetbrains.exposed.dao.*
+import org.jetbrains.exposed.dao.UUIDEntity
+import org.jetbrains.exposed.dao.UUIDEntityClass
+import org.jetbrains.exposed.dao.id.*
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.jodatime.datetime
 import org.joda.time.DateTime
 import org.postgresql.util.PGobject
 import java.math.BigDecimal
@@ -53,8 +53,10 @@ object Habits : UUIDTable("habits", "id") {
 }
 
 object HabitTags : Table("habit_tags") {
-	val habitId = reference("habitId", Habits, onDelete = ReferenceOption.CASCADE).primaryKey(0)
-	val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
+	val habitId = reference("habitId", Habits, onDelete = ReferenceOption.CASCADE)
+	val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE)
+
+	override val primaryKey = PrimaryKey(habitId, tagId)
 }
 
 class Habit(id: EntityID<UUID>) : UUIDEntity(id) {
@@ -145,8 +147,9 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
 }
 
 object ActionTags : Table("action_tags") {
-	val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE).primaryKey(0)
-	val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
+	val actionId = reference("actionId", Actions, onDelete = ReferenceOption.CASCADE)
+	val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE)
+	override val primaryKey = PrimaryKey(actionId, tagId)
 }
 
 object Actions : UUIDTable("actions", "id") {
@@ -247,8 +250,10 @@ data class StreakRecord(
 )
 
 object UserTags : Table("user_tags") {
-	val userId = reference("userId", Users, onDelete = ReferenceOption.CASCADE).primaryKey(0)
-	val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE).primaryKey(1)
+	val userId = reference("userId", Users, onDelete = ReferenceOption.CASCADE)
+	val tagId = reference("tagId", Tags, onDelete = ReferenceOption.CASCADE)
+
+	override val primaryKey = PrimaryKey(userId, tagId)
 }
 
 enum class ValueType {
@@ -333,14 +338,16 @@ fun dropSchema() {
 }
 
 inline class HabitId(val value: UUID) {
-	constructor(s: String): this(UUID.fromString(s))
+	constructor(s: String) : this(UUID.fromString(s))
+
 	companion object {
 		fun randomValue() = HabitId(UUID.randomUUID())
 	}
 }
 
 inline class UserId(val value: UUID) {
-	constructor(s: String): this(UUID.fromString(s))
+	constructor(s: String) : this(UUID.fromString(s))
+
 	companion object {
 		fun randomValue() = UserId(UUID.randomUUID())
 	}
@@ -353,7 +360,8 @@ inline class TagId(val value: UUID) {
 }
 
 inline class ActionId(val value: UUID) {
-	constructor(s: String): this(UUID.fromString(s))
+	constructor(s: String) : this(UUID.fromString(s))
+
 	companion object {
 		fun randomValue() = ActionId(UUID.randomUUID())
 	}

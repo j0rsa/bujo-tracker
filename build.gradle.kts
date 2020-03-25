@@ -51,7 +51,10 @@ dependencies {
 	implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
 	implementation("com.google.code.gson:gson:2.7")
 
-	implementation("org.jetbrains.exposed:exposed:0.17.7")
+	implementation("org.jetbrains.exposed:exposed-core:0.22.1")
+	implementation("org.jetbrains.exposed:exposed-dao:0.22.1")
+	implementation("org.jetbrains.exposed:exposed-jdbc:0.22.1")
+	implementation("org.jetbrains.exposed:exposed-jodatime:0.22.1")
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 	implementation("org.slf4j:slf4j-api:1.7.25")
 	implementation("ch.qos.logback:logback-classic:1.2.3")
