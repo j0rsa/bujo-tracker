@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Docker login
+      uses: azure/docker-login@v1
+      with:
+#        login-server: '<login server>' # default: index.docker.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Prepare java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+
+    - name: Build and deploy
+      uses: eskatos/gradle-command-action@v1
+      with:
+        arguments: dockerTagsPush
+
+    - name: Prepare K8S
+      uses: Azure/k8s-set-context@v1
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: get shortsha
+      id: vars
+      run: |
+         echo ::set-output name=sha_short::$(git rev-parse --short=6 ${{ github.sha }})
+
+    - name: Deploy to K8S
+      uses: Azure/k8s-deploy@v1
+      with:
+        namespace: bujo-prod
+        manifests: deployment/manifest.yaml
+        images: |
+          j0rsa/bujo-tracker:${{ steps.vars.outputs.sha_short }}
+    
