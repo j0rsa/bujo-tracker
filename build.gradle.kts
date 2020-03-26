@@ -99,6 +99,10 @@ tasks {
 	getByName<JavaExec>("run") {
 		args = listOf("run", mainVerticleName, "--redeploy=${watchForChange}", "--launcher-class=${application.mainClassName}", "--on-redeploy=${doOnChange}")
 	}
+
+	docker {
+		dependsOn(this@tasks.test.get())
+	}
 }
 
 val test by tasks.getting(Test::class) {
