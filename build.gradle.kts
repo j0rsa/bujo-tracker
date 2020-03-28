@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 
-val kotlinVersion = "1.3.61"
+val kotlinVersion = "1.3.71"
 val config4kVersion = "0.4.1"
 val arrowVersion = "0.10.4"
 val vertxVersion = "3.8.5"
@@ -15,8 +15,8 @@ val doOnChange = "./gradlew classes"
 plugins {
 	java
 	application
-	kotlin("jvm") version "1.3.61"
-	kotlin("kapt") version "1.3.61"
+	kotlin("jvm") version "1.3.71"
+	kotlin("kapt") version "1.3.71"
 	id("com.github.ben-manes.versions") version "0.26.0"
 	id("com.adarshr.test-logger") version "2.0.0"
 	id("com.gorylenko.gradle-git-properties") version "1.4.17"
