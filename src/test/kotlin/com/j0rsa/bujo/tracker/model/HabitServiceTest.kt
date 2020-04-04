@@ -4,6 +4,9 @@ import assertk.assertThat
 import assertk.assertions.*
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.userId
+import com.j0rsa.bujo.tracker.repository.HabitRepository
+import com.j0rsa.bujo.tracker.service.HabitService
+import com.j0rsa.bujo.tracker.service.ValueTemplateService
 import org.junit.jupiter.api.Test
 
 internal class HabitServiceTest : TransactionalTest {

@@ -1,5 +1,6 @@
-package com.j0rsa.bujo.tracker.model
+package com.j0rsa.bujo.tracker.repository
 
+import com.j0rsa.bujo.tracker.model.*
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select

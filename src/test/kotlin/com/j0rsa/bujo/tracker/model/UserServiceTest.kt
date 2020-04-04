@@ -5,6 +5,8 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.telegramUser
+import com.j0rsa.bujo.tracker.repository.UserRepository
+import com.j0rsa.bujo.tracker.service.UserService
 import org.junit.jupiter.api.Test
 
 internal class UserServiceTest : TransactionalTest {

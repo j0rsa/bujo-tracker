@@ -1,9 +1,7 @@
-package com.j0rsa.bujo.tracker.model
+package com.j0rsa.bujo.tracker.repository
 
+import com.j0rsa.bujo.tracker.model.*
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.jodatime.CurrentDateTime
-import org.jetbrains.exposed.sql.jodatime.day
-import org.jetbrains.exposed.sql.jodatime.month
 import org.joda.time.DateTime
 import java.math.BigDecimal
 
@@ -23,7 +21,8 @@ object ActionRepository {
 	}
 
 	fun findTodayActions(habitId: HabitId): List<Action> {
-		val query = Actions.innerJoin(Habits).slice(Actions.columns).select {
+		val query = Actions.innerJoin(Habits).slice(
+            Actions.columns).select {
 			Habits.id eq habitId.value and Actions.created.between(
 				DateTime.now().withTimeAtStartOfDay(),
 				DateTime.now().plusDays(1).withTimeAtStartOfDay()
@@ -61,8 +60,8 @@ object ActionRepository {
             ORDER BY endDate DESC
         """.trimIndent()
 			.exec(
-				param(habitId),
-				param(numberOfRepetitions)
+                param(habitId),
+                param(numberOfRepetitions)
 			)
 			.toEntities()
 
@@ -91,8 +90,8 @@ object ActionRepository {
             LIMIT 1
         """.trimIndent()
 			.exec(
-				param(habitId),
-				param(numberOfRepetitions)
+                param(habitId),
+                param(numberOfRepetitions)
 			)
 			.getValue<BigDecimal>("streak")
 			.firstOrNull()
@@ -120,8 +119,8 @@ object ActionRepository {
             """
 			.trimIndent())
 			.exec(
-				param(habitId),
-				param(numberOfRepetitions)
+                param(habitId),
+                param(numberOfRepetitions)
 			)
 			.toEntities()
 
@@ -151,8 +150,8 @@ object ActionRepository {
             """
 			.trimIndent())
 			.exec(
-				param(habitId),
-				param(numberOfRepetitions)
+                param(habitId),
+                param(numberOfRepetitions)
 			)
 			.getValue<BigDecimal>("streak")
 			.firstOrNull()

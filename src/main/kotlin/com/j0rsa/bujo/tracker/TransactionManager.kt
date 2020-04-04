@@ -34,9 +34,11 @@ object TransactionManager {
 			block()
 		}
 
-	fun migrate() =
-		Flyway.configure().dataSource(TransactionManager.dataSource).load().apply {
-			//        baseline()
-			migrate()
+	fun migrate() {
+		with(Flyway.configure()) {
+			locations("classpath:db/migration")
+			baselineOnMigrate(false)
+			dataSource(TransactionManager.dataSource).load().migrate()
 		}
+	}
 }

@@ -7,7 +7,7 @@ import com.j0rsa.bujo.tracker.blockingTx
 import com.j0rsa.bujo.tracker.handler.RequestLens.telegramUserIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.telegramUserLens
 import com.j0rsa.bujo.tracker.model.UserId
-import com.j0rsa.bujo.tracker.model.UserService
+import com.j0rsa.bujo.tracker.service.UserService
 import com.j0rsa.bujo.tracker.handler.ResponseState.*
 import io.vertx.core.Vertx
 import io.vertx.ext.web.RoutingContext

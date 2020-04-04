@@ -5,6 +5,9 @@ import assertk.assertThat
 import assertk.assertions.*
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.userId
+import com.j0rsa.bujo.tracker.repository.ActionRepository
+import com.j0rsa.bujo.tracker.service.ActionService
+import com.j0rsa.bujo.tracker.service.ValueService
 import org.joda.time.DateTime
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal

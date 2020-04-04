@@ -11,6 +11,8 @@ import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.valueLens
 import com.j0rsa.bujo.tracker.handler.ResponseState.*
 import com.j0rsa.bujo.tracker.model.*
+import com.j0rsa.bujo.tracker.service.ActionService
+import com.j0rsa.bujo.tracker.service.ValueService
 import io.vertx.core.Vertx
 import io.vertx.ext.web.RoutingContext
 

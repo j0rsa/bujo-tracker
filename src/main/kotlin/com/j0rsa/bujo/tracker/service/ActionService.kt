@@ -1,4 +1,4 @@
-package com.j0rsa.bujo.tracker.model
+package com.j0rsa.bujo.tracker.service
 
 import arrow.core.Either
 import arrow.core.Either.Left
@@ -7,17 +7,26 @@ import arrow.core.extensions.fx
 import arrow.core.fix
 import com.j0rsa.bujo.tracker.*
 import com.j0rsa.bujo.tracker.handler.StreakRow
+import com.j0rsa.bujo.tracker.model.*
+import com.j0rsa.bujo.tracker.repository.ActionRepository
+import com.j0rsa.bujo.tracker.repository.HabitRepository
+import com.j0rsa.bujo.tracker.repository.UserRepository
 import org.jetbrains.exposed.sql.SizedCollection
 import java.math.BigDecimal
 
 object ActionService {
 	fun create(row: ActionRow): Either<TrackerError, ActionId> {
 		val foundUser = UserRepository.findOne(row.userId)!!
-		val foundHabits = HabitRepository.findOne(row.userId, row.habitId!!)
+		val foundHabits =
+			HabitRepository.findOne(row.userId, row.habitId!!)
 
 		return when (foundHabits.size) {
 			0 -> Left(NotFound)
-			1 -> createActionForHabit(foundUser, row, foundHabits)
+			1 -> createActionForHabit(
+				foundUser,
+				row,
+				foundHabits
+			)
 			else -> Left(SystemError("Found too many records"))
 		}
 	}
@@ -50,7 +59,9 @@ object ActionService {
 		return action.idValue()
 	}
 
-	fun findAll(userId: UserId) = ActionRepository.findAll(userId).toList().map { it.toRow() }
+	fun findAll(userId: UserId) = ActionRepository.findAll(
+		userId
+	).toList().map { it.toRow() }
 
 	fun findOneBy(actionId: ActionId, userId: UserId): Either<TrackerError, Action> =
 		findOne(actionId, userId)
@@ -65,7 +76,8 @@ object ActionService {
 	}
 
 	fun update(row: BaseActionRow): Either<TrackerError, ActionRow> =
-		findOne(row.id!!, row.userId).map(updateAction(row))
+		findOne(row.id!!, row.userId)
+			.map(updateAction(row))
 
 	private fun updateAction(row: BaseActionRow): (Action) -> ActionRow = { action: Action ->
 		val tags = TagService.createTagsIfNotExist(row.userId, row.tags)
@@ -84,24 +96,38 @@ object ActionService {
 		}.fix()
 
 	fun findCurrentStreakForDay(id: HabitId, numberOfRepetitions: Int): BigDecimal =
-		ActionRepository.findCurrentStreakForDay(id, numberOfRepetitions) ?: BigDecimal.ZERO
+		ActionRepository.findCurrentStreakForDay(
+			id,
+			numberOfRepetitions
+		) ?: BigDecimal.ZERO
 
 	fun findStreakForDay(id: HabitId, numberOfRepetitions: Int): StreakRow {
-		val result = ActionRepository.findStreakForDay(id, numberOfRepetitions)
+		val result =
+			ActionRepository.findStreakForDay(id, numberOfRepetitions)
 		val currentStreak = result.firstOrNull()?.checkStreakOrNull(isEndDateCurrentDay) ?: BigDecimal.ZERO
-		return StreakRow(currentStreak, maxStreakOrZero(result))
+		return StreakRow(currentStreak,
+			maxStreakOrZero(result)
+		)
 	}
 
 	fun findCurrentStreakForWeek(id: HabitId, numberOfRepetitions: Int): BigDecimal =
-		ActionRepository.findCurrentStreakForWeek(id, numberOfRepetitions) ?: BigDecimal.ZERO
+		ActionRepository.findCurrentStreakForWeek(
+			id,
+			numberOfRepetitions
+		) ?: BigDecimal.ZERO
 
 	fun findStreakForWeek(id: HabitId, numberOfRepetitions: Int): StreakRow {
-		val result = ActionRepository.findStreakForWeek(id, numberOfRepetitions)
+		val result =
+			ActionRepository.findStreakForWeek(id, numberOfRepetitions)
 		val currentStreak = result.firstOrNull()?.checkStreakOrNull(isEndDateCurrentWeek) ?: BigDecimal.ZERO
-		return StreakRow(currentStreak, maxStreakOrZero(result))
+		return StreakRow(currentStreak,
+			maxStreakOrZero(result)
+		)
 	}
 
-	fun hasActionToday(habitId: HabitId): Boolean = ActionRepository.findTodayActions(habitId).isNotEmpty()
+	fun hasActionToday(habitId: HabitId): Boolean = ActionRepository.findTodayActions(
+		habitId
+	).isNotEmpty()
 
 	private val isEndDateCurrentWeek = { record: StreakRecord ->
 		record.endDate.isCurrentWeek()

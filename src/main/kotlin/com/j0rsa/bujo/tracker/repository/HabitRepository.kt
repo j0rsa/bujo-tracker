@@ -1,5 +1,6 @@
-package com.j0rsa.bujo.tracker.model
+package com.j0rsa.bujo.tracker.repository
 
+import com.j0rsa.bujo.tracker.model.*
 import org.jetbrains.exposed.sql.*
 
 object HabitRepository {

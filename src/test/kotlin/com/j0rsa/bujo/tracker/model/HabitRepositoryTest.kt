@@ -5,6 +5,7 @@ import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
+import com.j0rsa.bujo.tracker.repository.HabitRepository
 import org.junit.jupiter.api.Test
 
 internal class HabitRepositoryTest : TransactionalTest {

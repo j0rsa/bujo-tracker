@@ -8,7 +8,7 @@ import com.j0rsa.bujo.tracker.handler.RequestLens.tagLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
 import com.j0rsa.bujo.tracker.handler.ResponseState.OK
 import com.j0rsa.bujo.tracker.model.TagId
-import com.j0rsa.bujo.tracker.model.TagService
+import com.j0rsa.bujo.tracker.service.TagService
 import io.vertx.core.Vertx
 import io.vertx.ext.web.RoutingContext
 

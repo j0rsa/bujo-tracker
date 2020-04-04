@@ -1,7 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
-import java.time.Duration
 
 val kotlinVersion = "1.3.71"
 val config4kVersion = "0.4.1"
@@ -24,6 +23,7 @@ plugins {
 	id("com.avast.gradle.docker-compose") version "0.9.4"
 	id("com.palantir.docker") version "0.24.0"
 	id("com.github.johnrengelman.shadow") version "5.2.0"
+	id("org.flywaydb.flyway") version "6.3.2"
 }
 
 group = "com.j0rsa.bujo"
@@ -37,7 +37,7 @@ repositories {
 }
 
 dependencies {
-	implementation("org.flywaydb:flyway-core:6.2.2")
+	implementation("org.flywaydb:flyway-core:6.3.2")
 	implementation("org.postgresql:postgresql:42.2.9")
 	implementation("com.zaxxer:HikariCP:3.4.2")
 	implementation("io.arrow-kt:arrow-fx:$arrowVersion")
@@ -68,6 +68,7 @@ dependencies {
 	testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.20")
 	testImplementation("org.jetbrains.spek:spek-api:1.1.5")
 	testImplementation("org.jetbrains.spek:spek-junit-platform-engine:1.1.5")
+	testImplementation("org.postgresql:postgresql:42.2.9")
 }
 
 java {
@@ -103,26 +104,16 @@ tasks {
 		dependsOn(this@tasks.test.get())
 	}
 
-	val copyScripts = register<Copy>("copyDbScripts") {
-		from("src/main/resources/db")
-		include("*.sql")
-		into("src/main/docker/postgres/init")
-	}
-
-	val composeUp = getByName("composeUp") {
-		dependsOn(copyScripts)
-	}
-
+	val composeUp = getByName("composeUp")
+	val flywayMigrate = getByName("flywayMigrate")
+	val flywayValidate = getByName("flywayValidate")
 	val test by getting(Test::class) {
 		dependsOn(composeUp)
+		dependsOn(flywayMigrate)
+		dependsOn(flywayValidate)
 		useJUnitPlatform { }
 		jvmArgs = listOf("-Duser.timezone=UTC")
-
 	}
-}
-
-val test by tasks.getting(Test::class) {
-
 }
 
 val compileKotlin: KotlinCompile by tasks
@@ -155,4 +146,12 @@ dockerCompose {
 	forceRecreate = true
 	dockerComposeWorkingDirectory = "src/main/docker"
 	projectName = project.name
+}
+
+flyway {
+	url = System.getenv("DB_URL") ?: "jdbc:postgresql://localhost/postgres"
+	user = System.getenv("DB_USER") ?: "postgres"
+	password = System.getenv("DB_PASSWORD") ?: "postgres"
+	locations = arrayOf("filesystem:src/main/resources/db/migration")
+	baselineOnMigrate = true
 }

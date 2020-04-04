@@ -1,4 +1,4 @@
-package com.j0rsa.bujo.tracker.model
+package com.j0rsa.bujo.tracker.service
 
 import arrow.core.Either
 import arrow.core.extensions.fx
@@ -6,12 +6,16 @@ import arrow.core.fix
 import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.SystemError
 import com.j0rsa.bujo.tracker.TrackerError
+import com.j0rsa.bujo.tracker.model.*
+import com.j0rsa.bujo.tracker.repository.HabitRepository
+import com.j0rsa.bujo.tracker.repository.UserRepository
 import org.jetbrains.exposed.sql.SizedCollection
 
 object HabitService {
 	fun create(habitRow: HabitRow): HabitId {
 		val foundUser = UserRepository.findOne(habitRow.userId)!!
-		val allTags = TagService.createTagsIfNotExist(foundUser, habitRow.tags)
+		val allTags =
+            TagService.createTagsIfNotExist(foundUser, habitRow.tags)
 		val habit = Habit.new(HabitId.randomValue().value) {
 			name = habitRow.name
 			user = foundUser
@@ -21,15 +25,19 @@ object HabitService {
 			quote = habitRow.quote
 			bad = habitRow.bad
 		}
-		ValueTemplateService.create(habitRow.values, habit)
+        ValueTemplateService.create(habitRow.values, habit)
 		return habit.idValue()
 	}
 
 	fun update(habitRow: HabitRow): Either<TrackerError, HabitRow> =
-		findOne(habitRow.id!!, habitRow.userId).map(updateHabit(habitRow))
+		findOne(habitRow.id!!, habitRow.userId)
+            .map(updateHabit(habitRow))
 
 	private fun updateHabit(habitRow: HabitRow) = { habit: Habit ->
-		val allTags = TagService.createTagsIfNotExist(habitRow.userId, habitRow.tags)
+		val allTags = TagService.createTagsIfNotExist(
+            habitRow.userId,
+            habitRow.tags
+        )
 		habit.apply {
 			name = habitRow.name
 			numberOfRepetitions = habitRow.numberOfRepetitions
@@ -38,7 +46,7 @@ object HabitService {
 			bad = habitRow.bad
 			tags = SizedCollection(allTags)
 		}
-		ValueTemplateService.reCreate(habitRow.values, habit)
+        ValueTemplateService.reCreate(habitRow.values, habit)
 		habit.toRow()
 	}
 
@@ -54,7 +62,9 @@ object HabitService {
 		}
 	}
 
-	fun findAll(userId: UserId): List<HabitRow> = HabitRepository.findAll(userId).map { it.toRow() }
+	fun findAll(userId: UserId): List<HabitRow> = HabitRepository.findAll(
+        userId
+    ).map { it.toRow() }
 
 	fun deleteOne(id: HabitId, userId: UserId) = Either.fx<TrackerError, Unit> {
 		val (habit) = findOne(id, userId)

@@ -1,4 +1,4 @@
-package com.j0rsa.bujo.tracker.model
+package com.j0rsa.bujo.tracker.service
 
 import arrow.core.Either
 import arrow.core.Either.Left
@@ -7,10 +7,14 @@ import com.j0rsa.bujo.tracker.NotFound
 import com.j0rsa.bujo.tracker.SystemError
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.handler.UserInfo
+import com.j0rsa.bujo.tracker.model.User
+import com.j0rsa.bujo.tracker.repository.UserRepository
 
 object UserService {
 
-	fun findOneBy(telegramId: Long) = UserRepository.findOneByTelegramId(telegramId).firstOrNull()
+	fun findOneBy(telegramId: Long) = UserRepository.findOneByTelegramId(
+		telegramId
+	).firstOrNull()
 
 	fun findOne(telegramId: Long): Either<TrackerError, UserInfo> {
 		val foundUsers = UserRepository.findOneByTelegramId(telegramId)

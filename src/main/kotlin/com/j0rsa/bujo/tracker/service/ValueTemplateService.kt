@@ -1,6 +1,9 @@
-package com.j0rsa.bujo.tracker.model
+package com.j0rsa.bujo.tracker.service
 
 import com.j0rsa.bujo.tracker.handler.ValueTemplateRow
+import com.j0rsa.bujo.tracker.model.Habit
+import com.j0rsa.bujo.tracker.model.ValueTemplate
+import com.j0rsa.bujo.tracker.model.ValueTemplates
 import org.jetbrains.exposed.sql.deleteWhere
 
 object ValueTemplateService {
@@ -11,7 +14,12 @@ object ValueTemplateService {
 		this.name = row.name
 	}
 
-	fun create(rows: List<ValueTemplateRow>, habit: Habit) = rows.map { create(it, habit) }
+	fun create(rows: List<ValueTemplateRow>, habit: Habit) = rows.map {
+        create(
+            it,
+            habit
+        )
+    }
 
 	fun reCreate(rows: List<ValueTemplateRow>, habit: Habit) {
 		ValueTemplates.deleteWhere { ValueTemplates.habitId eq habit.id }

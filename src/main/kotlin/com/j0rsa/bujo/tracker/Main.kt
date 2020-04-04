@@ -17,6 +17,7 @@ import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.flywaydb.core.Flyway
 
 class App : CoroutineVerticle() {
 	override suspend fun start() {
@@ -57,8 +58,8 @@ class App : CoroutineVerticle() {
 		val logger = logger()
 	}
 
-	private suspend fun dbMigrate() {
-//    TransactionManager.migrate()
+	private fun dbMigrate() {
+    	TransactionManager.migrate()
 	}
 }
 

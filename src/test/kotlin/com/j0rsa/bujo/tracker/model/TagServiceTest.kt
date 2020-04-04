@@ -7,6 +7,8 @@ import assertk.assertions.*
 import com.j0rsa.bujo.tracker.handler.TagRow
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.user
 import com.j0rsa.bujo.tracker.model.TransactionalTest.Companion.userId
+import com.j0rsa.bujo.tracker.repository.TagRepository
+import com.j0rsa.bujo.tracker.service.TagService
 
 internal class TagServiceTest : TransactionalTest {
 
