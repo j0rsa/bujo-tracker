@@ -1,6 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
+import java.time.Duration
 
 val kotlinVersion = "1.3.71"
 val config4kVersion = "0.4.1"
@@ -93,15 +94,27 @@ tasks {
 	build {
 		dependsOn(shadowJar)
 	}
-}
 
-tasks {
 	getByName<JavaExec>("run") {
 		args = listOf("run", mainVerticleName, "--redeploy=${watchForChange}", "--launcher-class=${application.mainClassName}", "--on-redeploy=${doOnChange}")
 	}
 
 	docker {
 		dependsOn(this@tasks.test.get())
+	}
+
+	val copyScripts = register<Copy>("copyDbScripts") {
+		from("src/main/resources/db")
+		include("*.sql")
+		into("src/main/docker/postgres/init")
+	}
+
+	val composeUp = getByName("composeUp") {
+		dependsOn(copyScripts)
+	}
+
+	getByName("test") {
+		dependsOn(composeUp)
 	}
 }
 
@@ -120,7 +133,7 @@ val projectTag = hash
 val baseDockerName = "j0rsa/${project.name}"
 val taggedDockerName = "$baseDockerName:$projectTag"
 
-val baseDockerFile = file("$projectDir/Dockerfile")
+val baseDockerFile = file("$projectDir/src/main/docker/Dockerfile")
 docker {
 	val shadowJar: ShadowJar by tasks
 	name = taggedDockerName
@@ -131,4 +144,12 @@ docker {
 }
 compileKotlin.kotlinOptions {
 	freeCompilerArgs = listOf("-Xinline-classes")
+}
+
+dockerCompose {
+	useComposeFiles = listOf("docker-compose.yaml")
+	captureContainersOutput = true
+	forceRecreate = true
+	dockerComposeWorkingDirectory = "src/main/docker"
+	projectName = project.name
 }
