@@ -1,5 +1,3 @@
-create extension if not exists "uuid-ossp";
-
 create table users
 (
 	id uuid not null
