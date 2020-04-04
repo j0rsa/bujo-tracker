@@ -21,6 +21,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
     - name: Checkout
@@ -34,7 +36,7 @@ jobs:
     - name: Prepare DB for tests
       run: find ./src/main/resources/db -maxdepth 1 -name '*.sql' -exec cat {} + | psql
       env:
-        PGHOST: postgres
+        PGHOST: localhost
         PGPASSWORD: postgres
         PGDATABASE: postgres
         PGUSER: postgres
