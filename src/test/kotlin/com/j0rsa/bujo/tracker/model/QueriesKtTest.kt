@@ -57,7 +57,7 @@ internal class QueriesKtTest : TransactionalTest {
 				}
 				.first()
 			assertThat(result).isNotNull()
-			assertThat(result).isEqualTo(BigDecimal.TEN to DateTime.parse("1970-01-01T01:00:00"))
+			assertThat(result).isEqualTo(BigDecimal.TEN to DateTime.parse("1970-01-01T00:00:00"))
 		}
 	}
 
@@ -116,7 +116,7 @@ internal class QueriesKtTest : TransactionalTest {
 
 	private fun defaultTestData(): TestData =
 		TestData(
-			date = DateTime.parse("1970-01-01T01:00:00"),
+			date = DateTime.parse("1970-01-01T00:00:00"),
 			bigDecimal = BigDecimal.TEN,
 			b = false,
 			d = 1.7976931348623157E308,

@@ -113,13 +113,16 @@ tasks {
 		dependsOn(copyScripts)
 	}
 
-	getByName("test") {
+	val test by getting(Test::class) {
 		dependsOn(composeUp)
+		useJUnitPlatform { }
+		jvmArgs = listOf("-Duser.timezone=UTC")
+
 	}
 }
 
 val test by tasks.getting(Test::class) {
-	useJUnitPlatform { }
+
 }
 
 val compileKotlin: KotlinCompile by tasks
