@@ -9,38 +9,11 @@ jobs:
   build-push-deploy:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
     - name: Checkout
       uses: actions/checkout@v1
       with:
         fetch-depth: 1
-
-    - name: Install psql
-      run: sudo apt-get install postgresql-client
-
-    - name: Prepare DB for tests
-      run: find ./src/main/resources/db -maxdepth 1 -name '*.sql' -exec cat {} + | psql
-      env:
-        PGHOST: localhost
-        PGPASSWORD: postgres
-        PGDATABASE: postgres
-        PGUSER: postgres
-        PGPORT: 5432
 
     - name: Docker login
       uses: azure/docker-login@v1
