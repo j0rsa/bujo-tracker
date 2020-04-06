@@ -5,7 +5,7 @@ import java.net.URI
 val kotlinVersion = "1.3.71"
 val config4kVersion = "0.4.1"
 val arrowVersion = "0.10.4"
-val vertxVersion = "3.8.5"
+val vertxVersion = "3.9.0"
 val junitJupiterEngineVersion = "5.4.2"
 
 val mainVerticleName = "com.j0rsa.bujo.tracker.App"
@@ -50,6 +50,7 @@ dependencies {
 	implementation("io.vertx:vertx-web:$vertxVersion")
 	implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
 	implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
+	implementation("io.vertx:vertx-web-api-contract:$vertxVersion")
 	implementation("com.google.code.gson:gson:2.7")
 
 	implementation("org.jetbrains.exposed:exposed-core:0.22.1")

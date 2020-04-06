@@ -26,7 +26,7 @@ class App : CoroutineVerticle() {
 		val router = Router.router(vertx)
 		router.route().handler(BodyHandler.create())
 		val hc = HealthCheckHandler.create(vertx)
-		router.get("/health").handler(hc);
+		router.get("/health").handler(hc)
 
 		router.post("/habits").coroutineHandler { HabitHandler.create(vertx)(it) }
 		router.get("/habits").coroutineHandler { HabitHandler.findAll(vertx)(it) }
@@ -66,7 +66,7 @@ class App : CoroutineVerticle() {
 suspend fun main() {
 	val vertx = Vertx.vertx()
 	try {
-		vertx.deployVerticleAwait("com.j0rsa.bujo.tracker.App")
+		vertx.deployVerticleAwait(App::class.qualifiedName!!)
 		println("Application started")
 	} catch (exception: Throwable) {
 		println("Could not start application")

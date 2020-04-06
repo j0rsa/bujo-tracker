@@ -309,34 +309,6 @@ class ValueTemplate(id: EntityID<UUID>) : UUIDEntity(id) {
 	fun toRow(): ValueTemplateRow = ValueTemplateRow(type, values, name)
 }
 
-fun createSchema() {
-	SchemaUtils.createMissingTablesAndColumns(
-		Users,
-		Tags,
-		Habits,
-		Actions,
-		HabitTags,
-		ActionTags,
-		UserTags,
-		Values,
-		ValueTemplates
-	)
-}
-
-fun dropSchema() {
-	SchemaUtils.drop(
-		Users,
-		Tags,
-		Habits,
-		Actions,
-		HabitTags,
-		ActionTags,
-		UserTags,
-		Values,
-		ValueTemplates
-	)
-}
-
 inline class HabitId(val value: UUID) {
 	constructor(s: String) : this(UUID.fromString(s))
 

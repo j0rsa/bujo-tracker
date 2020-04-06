@@ -57,8 +57,7 @@ components:
         - language
       properties:
         id:
-          description: user id
-          $ref: '#/components/schemas/Id'
+          $ref: '#/components/schemas/UserId'
         telegramId:
           description: Long id of Telegram user
           type: number
@@ -77,3 +76,15 @@ components:
       properties:
         value:
           $ref: '#/components/schemas/UUID'
+    ValueTemplateId:
+      $ref: '#/components/schemas/Id'
+    ValueId:
+      $ref: '#/components/schemas/Id'
+    ActionId:
+      $ref: '#/components/schemas/Id'
+    TagId:
+      $ref: '#/components/schemas/Id'
+    UserId:
+      $ref: '#/components/schemas/Id'
+    HabitId:
+      $ref: '#/components/schemas/Id'
