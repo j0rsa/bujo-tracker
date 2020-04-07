@@ -28,7 +28,7 @@ object HabitHandler {
 	fun delete(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<Unit>> = { request ->
 		blockingTx(vertx) {
 			HabitService.deleteOne(habitIdLens(request), userIdLens(request))
-		}.map { Response(NO_CONTENT) }
+		}.map { Response<Unit>(NO_CONTENT) }
 	}
 
 	fun findOne(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<HabitInfoView>> = { request ->

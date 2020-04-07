@@ -6,6 +6,7 @@ paths:
   /users:
     post:
       summary: Register user
+      operationId: addUser
       tags:
         - users
       requestBody:
