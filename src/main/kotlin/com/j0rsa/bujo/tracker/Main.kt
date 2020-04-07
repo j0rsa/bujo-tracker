@@ -46,8 +46,11 @@ suspend fun main() {
     val logger = LoggerFactory.getLogger("Main")
     val vertx = Vertx.vertx()
     try {
+
 //        vertx.deployVerticleAwait(AppVerticle::class.qualifiedName!!)
-        vertx.deployVerticleAwait(SwaggerVerticle::class.qualifiedName!!)
+        if (Config.app.swagger.enabled) {
+            vertx.deployVerticleAwait(SwaggerVerticle::class.qualifiedName!!)
+        }
         logger.info("Application started")
     } catch (exception: Throwable) {
         logger.error("Could not start application")
