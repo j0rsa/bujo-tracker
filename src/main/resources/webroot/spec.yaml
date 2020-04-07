@@ -3,6 +3,16 @@ info:
   version: 1.0.0
   title: Bujo tracker
 paths:
+  /health:
+    get:
+      summary: Healt check
+      operationId: getHealthInfo
+      responses:
+        204:
+          description: OK
+        500:
+          description: Service is down
+
   /users:
     post:
       summary: Register user
@@ -21,6 +31,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TrackerUserResponse'
+  /tags:
+    get:
+      summary: Get all user tags
+      operationId: getAllTags
+      parameters:
+        -
+      responses:
+        200:
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagList'
+
 
 # =========================================================================
 components:
@@ -69,6 +93,15 @@ components:
         language:
           description: language code for translations
           type: string
+
+    TagList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Tag'
+
+    Tag:
+      type: object
+
 
     Id:
       type: object

@@ -1,5 +1,6 @@
 package com.j0rsa.bujo.tracker
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
@@ -8,7 +9,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 object Serializer {
-	val gson = GsonBuilder()
+	val gson: Gson = GsonBuilder()
 		.registerTypeAdapter(DateTime::class.java, DateTimeTypeAdapter().nullSafe())
 		.create()
 

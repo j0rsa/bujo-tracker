@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 
@@ -24,6 +25,7 @@ plugins {
 	id("com.palantir.docker") version "0.24.0"
 	id("com.github.johnrengelman.shadow") version "5.2.0"
 	id("org.flywaydb.flyway") version "6.3.2"
+	id("de.undercouch.download") version "4.0.4"
 }
 
 group = "com.j0rsa.bujo"
@@ -114,6 +116,43 @@ tasks {
 		dependsOn(flywayValidate)
 		useJUnitPlatform { }
 		jvmArgs = listOf("-Duser.timezone=UTC")
+	}
+
+	val downloadSwagger = register<Download>("downloadSwaggerUi") {
+		src(listOf("https://github.com/swagger-api/swagger-ui/archive/v3.25.0.zip"))
+		dest(File(buildDir, "swaggerui.zip"))
+		onlyIfModified(true)
+	}
+
+	val unpackSwagger = register<Copy>("unpackSwaggerUi") {
+		dependsOn(downloadSwagger)
+		from(zipTree(downloadSwagger.get().dest))
+		into(File(buildDir, "swaggerui"))
+	}
+
+	val copySwagger = register<Copy>("copySwaggerUi") {
+		dependsOn(unpackSwagger)
+		from(File(unpackSwagger.get().destinationDir, "swagger-ui-3.25.0/dist"))
+		into(File(buildDir,"resources/main/webroot"))
+
+	}
+
+	val replaceSpecToken = register<Copy>("replaceSpecToken") {
+		dependsOn(copySwagger)
+		from(File(unpackSwagger.get().destinationDir, "swagger-ui-3.25.0/dist/index.html"))
+		into(File(buildDir,"resources/main/webroot/"))
+		filter { line -> line.replace("https://petstore.swagger.io/v2/swagger.json", "spec.yaml") }
+	}
+
+	// For Intellij IDEA
+	val copySwaggerToOut = register<Copy>("copySwaggerToOut") {
+		dependsOn(replaceSpecToken)
+		from(File(buildDir,"resources/main/webroot/"))
+		into(File(projectDir,"out/production/resources/webroot/"))
+	}
+
+	build {
+		dependsOn(replaceSpecToken)
 	}
 }
 
