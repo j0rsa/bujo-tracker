@@ -2,6 +2,8 @@ openapi: "3.0.0"
 info:
   version: 1.0.0
   title: Bujo tracker
+servers:
+  - url: http://localhost:8080
 paths:
   /health:
     get:
@@ -12,11 +14,10 @@ paths:
           description: OK
         500:
           description: Service is down
-
   /users:
     post:
-      summary: Register user
-      operationId: addUser
+      summary: Register or update user
+      operationId: createOrUpdateUser
       tags:
         - users
       requestBody:
@@ -25,18 +26,40 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateUserRequest'
       responses:
+        201:
+          description: User created/updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserId'
+        500:
+          $ref: '#/components/responses/InternalError'
+  /users/{telegram_id}:
+    get:
+      summary: Get user by telegram user id
+      operationId: getTelegramUser
+      parameters:
+        - in: path
+          name: telegram_id
+          schema:
+            type: string
+      tags:
+        - users
+      responses:
         200:
           description: User created/updated
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TrackerUserResponse'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
   /tags:
     get:
       summary: Get all user tags
       operationId: getAllTags
-      parameters:
-        -
       responses:
         200:
           description: List of tags
@@ -45,14 +68,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/TagList'
 
-
-# =========================================================================
 components:
+  responses:
+    NotFoundResponse:
+      description: Object not found
+      content:
+        application/json:
+          schema:
+            type: string
+            example: "Error: Not Found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            example: "Error: Internal Error"
+
   schemas:
     UUID:
       type: string
       format: uuid
-
+    Id:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: '#/components/schemas/UUID'
+    TagList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Tag'
+    UserId:
+      $ref: '#/components/schemas/Id'
     CreateUserRequest:
       type: object
       required:
@@ -65,13 +115,14 @@ components:
           description: Long id of Telegram user
           type: number
         firstName:
+          description: First name
           type: string
         lastName:
+          description: Last name
           type: string
         language:
           description: language code for translations
           type: string
-
     TrackerUserResponse:
       type: object
       required:
@@ -87,29 +138,16 @@ components:
           description: Long id of Telegram user
           type: number
         firstName:
+          description: First name
           type: string
         lastName:
+          description: First name
           type: string
         language:
           description: language code for translations
           type: string
-
-    TagList:
-      type: array
-      items:
-        $ref: '#/components/schemas/Tag'
-
     Tag:
       type: object
-
-
-    Id:
-      type: object
-      required:
-        - value
-      properties:
-        value:
-          $ref: '#/components/schemas/UUID'
     ValueTemplateId:
       $ref: '#/components/schemas/Id'
     ValueId:
@@ -117,8 +155,6 @@ components:
     ActionId:
       $ref: '#/components/schemas/Id'
     TagId:
-      $ref: '#/components/schemas/Id'
-    UserId:
       $ref: '#/components/schemas/Id'
     HabitId:
       $ref: '#/components/schemas/Id'

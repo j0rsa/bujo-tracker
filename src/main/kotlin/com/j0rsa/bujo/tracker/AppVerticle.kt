@@ -16,37 +16,44 @@ import kotlin.reflect.KFunction1
 
 class AppVerticle : CoroutineVerticle() {
     override suspend fun start() {
-        OpenAPI3RouterFactory.create(vertx, "src/main/resources/spec.yaml") { asyncResult ->
+        OpenAPI3RouterFactory.create(vertx, "src/main/resources/webroot/spec.yaml") { asyncResult ->
             if (asyncResult.succeeded()) {
+                val appPort = Config.app.port
                 asyncResult.result().apply {
                     mapOf<String, Handler<RoutingContext>>(
                         "getHealthInfo" to HealthCheckHandler.create(vertx),
 
-                        "createHabit" to HabitHandler::create,
-                        "getAllHabits" to HabitHandler::findAll,
-                        "getHabit" to HabitHandler::findOne,
-                        "updateHabit" to HabitHandler::update,
-                        "deleteHabit" to HabitHandler::delete,
+//                        "createHabit" to HabitHandler::create,
+//                        "getAllHabits" to HabitHandler::findAll,
+//                        "getHabit" to HabitHandler::findOne,
+//                        "updateHabit" to HabitHandler::update,
+//                        "deleteHabit" to HabitHandler::delete,
+//
+//                        "getAllTags" to TagHandler::findAll,
+//                        "updateTag" to TagHandler::update,
+//
+//                        "createAction" to ActionHandler::createWithTags,
+//                        "getAllActions" to ActionHandler::findAll,
+//                        "getAction" to ActionHandler::findOne,
+//                        "updateAction" to ActionHandler::update,
+//                        "deleteAction" to ActionHandler::delete,
+//                        "addActionValue" to ActionHandler::addValue,
+//                        "createHabitAction" to ActionHandler::createWithHabit,
 
-                        "getAllTags" to TagHandler::findAll,
-                        "updateTag" to TagHandler::update,
-
-                        "createAction" to ActionHandler::createWithTags,
-                        "getAllActions" to ActionHandler::findAll,
-                        "getAction" to ActionHandler::findOne,
-                        "updateAction" to ActionHandler::update,
-                        "deleteAction" to ActionHandler::delete,
-                        "addActionValue" to ActionHandler::addValue,
-                        "createHabitAction" to ActionHandler::createWithHabit,
-
-                        "getTelegramUser" to UserHandler::findUser,
-                        "createOrUpdateUser" to UserHandler::createOrUpdateUser
+                        "createOrUpdateUser" to UserHandler::createOrUpdateUser,
+                        "getTelegramUser" to UserHandler::findUser
                     ).forEach { (k,v) -> addHandlerByOperationId(k,v) }
+                    addGlobalHandler(Cors.disable())
+                    addGlobalHandler { event ->
+                        logger.debug(event.request().toString())
+                        event.next()
+                    }
                     vertx.createHttpServer()
                         .requestHandler(router)
-                        .listen(Config.app.port)
+                        .exceptionHandler { logger.error(it.message) }
+                        .listen(appPort)
                 }
-                logger.info("Server started")
+                logger.info("Server started on $appPort")
             } else {
                 logger.error("Could not start server")
                 asyncResult.cause().printStackTrace()
