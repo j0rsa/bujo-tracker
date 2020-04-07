@@ -44,14 +44,14 @@ class App : CoroutineVerticle() {
 
 suspend fun main() {
     val logger = LoggerFactory.getLogger("Main")
-    val vertx = Vertx.vertx()
     try {
-
-//        vertx.deployVerticleAwait(AppVerticle::class.qualifiedName!!)
-        if (Config.app.swagger.enabled) {
-            vertx.deployVerticleAwait(SwaggerVerticle::class.qualifiedName!!)
+        with(Vertx.vertx()) {
+            deployVerticleAwait(AppVerticle::class.qualifiedName!!)
+            if (Config.app.swagger.enabled) {
+                deployVerticleAwait(SwaggerVerticle::class.qualifiedName!!)
+            }
+            logger.info("Application started")
         }
-        logger.info("Application started")
     } catch (exception: Throwable) {
         logger.error("Could not start application")
         exception.printStackTrace()
