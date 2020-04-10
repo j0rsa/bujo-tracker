@@ -24,7 +24,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '#/components/schemas/UserIntent'
       responses:
         201:
           description: User created/updated
@@ -48,7 +48,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrackerUserResponse'
+                $ref: '#/components/schemas/User'
         404:
           $ref: '#/components/responses/NotFoundResponse'
         500:
@@ -84,7 +84,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TagRequest'
+              $ref: '#/components/schemas/TagIntent'
       responses:
         200:
           description: Updated tag
@@ -107,7 +107,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateHabitRequest'
+              $ref: '#/components/schemas/HabitIntent'
       responses:
         201:
           description: Habit created
@@ -235,7 +235,7 @@ components:
       default: []
     UserId:
       $ref: '#/components/schemas/Id'
-    CreateUserRequest:
+    UserIntent:
       type: object
       required:
         - telegramId
@@ -255,7 +255,7 @@ components:
         language:
           description: language code for translations
           type: string
-    TrackerUserResponse:
+    User:
       type: object
       required:
         - id
@@ -278,7 +278,7 @@ components:
         language:
           description: language code for translations
           type: string
-    TagRequest:
+    TagIntent:
       type: object
       required:
         - name
@@ -297,20 +297,15 @@ components:
         name:
           description: Tag name
           type: string
-    TagWithOptionalId:
+    TagOrIntent:
       type: object
-      required:
-        - name
-      properties:
-        id:
-          $ref: '#/components/schemas/TagId'
-        name:
-          description: Tag name
-          type: string
-    TagWithOptionalIdList:
+      oneOf:
+        - $ref: '#/components/schemas/Tag'
+        - $ref: '#/components/schemas/TagIntent'
+    TagOrIntentList:
       type: array
       items:
-        $ref: '#/components/schemas/TagWithOptionalId'
+        $ref: '#/components/schemas/TagOrIntent'
       default: []
     Period:
       enum:
@@ -319,7 +314,7 @@ components:
     DateTime:
       type: string
       format: 'date-time'
-    CreateHabitRequest:
+    HabitIntent:
       type: object
       required:
         - name
@@ -331,7 +326,7 @@ components:
         name:
           type: string
         tags:
-          $ref: '#/components/schemas/TagWithOptionalIdList'
+          $ref: '#/components/schemas/TagOrIntentList'
         numberOfRepetitions:
           type: integer
         period:
@@ -366,7 +361,7 @@ components:
         name:
           type: string
         tags:
-          $ref: '#/components/schemas/TagWithOptionalIdList'
+          $ref: '#/components/schemas/TagOrIntentList'
         numberOfRepetitions:
           type: integer
         period:
