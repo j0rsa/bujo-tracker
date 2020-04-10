@@ -14,6 +14,7 @@ paths:
           description: OK
         500:
           description: Service is down
+
   /users:
     post:
       summary: Register or update user
@@ -120,6 +121,8 @@ paths:
     get:
       summary: Get all habits
       operationId: getAllHabits
+      tags:
+        - habits
       responses:
         200:
           description: User habits
@@ -136,6 +139,8 @@ paths:
     get:
       summary: Get user habit
       operationId: getHabit
+      tags:
+        - habits
       responses:
         200:
           description: Habit
@@ -150,6 +155,8 @@ paths:
     post:
       summary: Update habit
       operationId: updateHabit
+      tags:
+        - habits
       requestBody:
         content:
           application/json:
@@ -169,17 +176,109 @@ paths:
     delete:
       summary: Delete habit
       operationId: deleteHabit
+      tags:
+        - habits
       responses:
-        200:
-          description: Deleted habit
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Habit'
+        204:
+          description: Habit deleted
         404:
           $ref: '#/components/responses/NotFoundResponse'
         500:
           $ref: '#/components/responses/InternalError'
+
+  /actions:
+    parameters:
+      - $ref: '#/components/parameters/UserHeader'
+    post:
+      description: Create action with tags
+      operationId: createAction
+      tags:
+        - actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionIntent'
+      responses:
+        201:
+          description: Action created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionId'
+        500:
+          $ref: '#/components/responses/InternalError'
+    get:
+      description: Get all actions
+      operationId: getAllActions
+      tags:
+        - actions
+      responses:
+        200:
+          description: All actions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionList'
+        500:
+          $ref: '#/components/responses/InternalError'
+  /actions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UserHeader'
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      summary: Get action
+      operationId: getAction
+      tags:
+        - actions
+      responses:
+        200:
+          description: User action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
+    post:
+      summary: Update action
+      operationId: updateAction
+      tags:
+        - actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Action'
+      responses:
+        200:
+          description: Updated action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
+    delete:
+      summary: Delete Action
+      operationId: deleteAction
+      tags:
+        - actions
+      responses:
+        204:
+          description: Action deleted
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
+  /actions/{id}/value:
+    parameters:
+      - $ref: '#/components/parameters/UserHeader'
+      - $ref: '#/components/parameters/IdPath'
 
 components:
   parameters:
@@ -390,16 +489,69 @@ components:
         type:
           $ref: '#/components/schemas/ValueType'
         values:
-          $ref: '#/components/schemas/Values'
+          $ref: '#/components/schemas/ValueStrings'
         name:
           type: string
           description: Name of template value
-    Values:
+    ValueStrings:
       type: array
       items:
         - type: string
       default: []
+    ActionIntent:
+      type: object
+      required:
+        - description
+        - tags
+        - values
+      properties:
+        description:
+          type: string
+        tags:
+          $ref: '#/components/schemas/TagOrIntentList'
+        habitId:
+          $ref: '#/components/schemas/HabitId'
+        values:
+          $ref: '#/components/schemas/ValueList'
+    ActionList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Action'
+    Action:
+      type: object
+      required:
+        - id
+        - description
+        - tags
+        - values
+      properties:
+        id:
+          $ref: '#/components/schemas/ActionId'
+        description:
+          type: string
+        tags:
+          $ref: '#/components/schemas/TagOrIntentList'
+        habitId:
+          $ref: '#/components/schemas/HabitId'
+        values:
+          $ref: '#/components/schemas/ValueList'
+    ValueList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Value'
+    Value:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/ValueType'
+        value:
+          type: string
+        name:
+          type: string
     ValueType:
+      description: Type of value
       enum:
         - Mood
         - EndDate
