@@ -31,7 +31,7 @@ object TagService {
 	}
 
 	fun update(userId: UserId, tag: TagRow): Either<TrackerError, TagRow> =
-		TagRepository.findOneByIdForUser(tag.id!!, userId)?.let { oldTag ->
+		TagRepository.findOneByIdForUser(tag.id, userId)?.let { oldTag ->
 			val user = UserRepository.findOne(userId)!!
 			val newTag = createTagIfNotExist(user)(tag)
             updateHabitTags(oldTag, newTag)

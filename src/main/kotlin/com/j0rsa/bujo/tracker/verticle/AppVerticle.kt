@@ -24,14 +24,14 @@ class AppVerticle : CoroutineVerticle() {
                     mapOf<String, Handler<RoutingContext>>(
                         "getHealthInfo" to HealthCheckHandler.create(vertx),
 
-//                        "createHabit" to HabitHandler::create,
-//                        "getAllHabits" to HabitHandler::findAll,
-//                        "getHabit" to HabitHandler::findOne,
-//                        "updateHabit" to HabitHandler::update,
-//                        "deleteHabit" to HabitHandler::delete,
+                        "createHabit" to HabitHandler::create,
+                        "getAllHabits" to HabitHandler::findAll,
+                        "getHabit" to HabitHandler::findOne,
+                        "updateHabit" to HabitHandler::update,
+                        "deleteHabit" to HabitHandler::delete,
 //
-//                        "getAllTags" to TagHandler::findAll,
-//                        "updateTag" to TagHandler::update,
+                        "getAllTags" to TagHandler::findAll,
+                        "updateTag" to TagHandler::update,
 //
 //                        "createAction" to ActionHandler::createWithTags,
 //                        "getAllActions" to ActionHandler::findAll,

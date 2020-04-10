@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Right
 import com.j0rsa.bujo.tracker.TrackerError
 import com.j0rsa.bujo.tracker.blockingTx
+import com.j0rsa.bujo.tracker.handler.RequestLens.tagIdPathLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.tagLens
 import com.j0rsa.bujo.tracker.handler.RequestLens.userIdLens
 import com.j0rsa.bujo.tracker.handler.ResponseState.OK
@@ -22,13 +23,11 @@ object TagHandler {
 
 	fun update(vertx: Vertx): suspend (RoutingContext) -> Either<TrackerError, Response<TagRow>> = { req ->
 		blockingTx(vertx) {
-			TagService.update(userIdLens(req), tagLens(req))
+			TagService.update(userIdLens(req), Tag(tagIdPathLens(req), tagLens(req).name))
 		}.map { Response(OK, it) }
 	}
 }
 
-data class Tag(
-	val name: String,
-	val id: TagId? = null
-)
+data class TagRequest(val name: String)
+data class Tag(val id: TagId, val name: String)
 typealias TagRow = Tag

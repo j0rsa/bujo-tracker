@@ -3,6 +3,7 @@ package com.j0rsa.bujo.tracker.handler
 import com.j0rsa.bujo.tracker.Serializer.fromJson
 import com.j0rsa.bujo.tracker.model.ActionId
 import com.j0rsa.bujo.tracker.model.HabitId
+import com.j0rsa.bujo.tracker.model.TagId
 import com.j0rsa.bujo.tracker.model.UserId
 import io.vertx.ext.web.RoutingContext
 
@@ -15,9 +16,10 @@ object RequestLens {
 	val telegramUserIdLens = Path.of("telegram_id").map(String::toLong)
 	val telegramUserLens = Body.auto<User>()
 
-	val tagLens = Body.auto<Tag>()
+	val tagLens = Body.auto<TagRequest>()
 	val actionLens = Body.auto<ActionView>()
 	val actionIdPathLens = Path.of("id").map(::ActionId)
+	val tagIdPathLens = Path.of("id").map(::TagId)
 	val valueLens = Body.auto<ValueRow>()
 }
 

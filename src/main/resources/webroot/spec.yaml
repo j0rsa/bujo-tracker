@@ -39,10 +39,7 @@ paths:
       summary: Get user by telegram user id
       operationId: getTelegramUser
       parameters:
-        - in: path
-          name: telegram_id
-          schema:
-            type: string
+        - $ref: '#/components/parameters/TelegramUserPath'
       tags:
         - users
       responses:
@@ -56,10 +53,15 @@ paths:
           $ref: '#/components/responses/NotFoundResponse'
         500:
           $ref: '#/components/responses/InternalError'
+
   /tags:
     get:
       summary: Get all user tags
       operationId: getAllTags
+      parameters:
+        - $ref: '#/components/parameters/UserHeader'
+      tags:
+        - tags
       responses:
         200:
           description: List of tags
@@ -67,8 +69,138 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagList'
+        500:
+          $ref: '#/components/responses/InternalError'
+  /tags/{id}:
+    post:
+      summary: Update the tag
+      operationId: updateTag
+      parameters:
+        - $ref: '#/components/parameters/UserHeader'
+        - $ref: '#/components/parameters/IdPath'
+      tags:
+        - tags
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagRequest'
+      responses:
+        200:
+          description: Updated tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        500:
+          $ref: '#/components/responses/InternalError'
+
+  /habits:
+    parameters:
+      - $ref: '#/components/parameters/UserHeader'
+    post:
+      summary: Create habit
+      operationId: createHabit
+      tags:
+        - habits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHabitRequest'
+      responses:
+        201:
+          description: Habit created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+        500:
+          $ref: '#/components/responses/InternalError'
+    get:
+      summary: Get all habits
+      operationId: getAllHabits
+      responses:
+        200:
+          description: User habits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HabitList'
+        500:
+          $ref: '#/components/responses/InternalError'
+  /habits/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UserHeader'
+      - $ref: '#/components/parameters/IdPath'
+    get:
+      summary: Get user habit
+      operationId: getHabit
+      responses:
+        200:
+          description: Habit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
+    post:
+      summary: Update habit
+      operationId: updateHabit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Habit'
+      responses:
+        200:
+          description: Updated habit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
+    delete:
+      summary: Delete habit
+      operationId: deleteHabit
+      responses:
+        200:
+          description: Deleted habit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Habit'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
 
 components:
+  parameters:
+    TelegramUserPath:
+      in: path
+      name: telegram_id
+      schema:
+        type: number
+    IdPath:
+      in: path
+      name: id
+      schema:
+        $ref: '#/components/schemas/UUID'
+    UserHeader:
+      in: header
+      name: X-Auth-Id
+      description: User uuid
+      schema:
+        $ref: '#/components/schemas/UUID'
+      required: true
+
   responses:
     NotFoundResponse:
       description: Object not found
@@ -77,7 +209,6 @@ components:
           schema:
             type: string
             example: "Error: Not Found"
-
     InternalError:
       description: Internal server error
       content:
@@ -101,6 +232,7 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/Tag'
+      default: []
     UserId:
       $ref: '#/components/schemas/Id'
     CreateUserRequest:
@@ -146,8 +278,136 @@ components:
         language:
           description: language code for translations
           type: string
+    TagRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          description: Tag name
+          type: string
     Tag:
       type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          $ref: '#/components/schemas/TagId'
+        name:
+          description: Tag name
+          type: string
+    TagWithOptionalId:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          $ref: '#/components/schemas/TagId'
+        name:
+          description: Tag name
+          type: string
+    TagWithOptionalIdList:
+      type: array
+      items:
+        $ref: '#/components/schemas/TagWithOptionalId'
+      default: []
+    Period:
+      enum:
+        - Day
+        - Week
+    DateTime:
+      type: string
+      format: 'date-time'
+    CreateHabitRequest:
+      type: object
+      required:
+        - name
+        - tags
+        - numberOfRepetitions
+        - period
+        - values
+      properties:
+        name:
+          type: string
+        tags:
+          $ref: '#/components/schemas/TagWithOptionalIdList'
+        numberOfRepetitions:
+          type: integer
+        period:
+          $ref: '#/components/schemas/Period'
+        quote:
+          type: string
+        bad:
+          type: boolean
+          description: Is it bad habit
+          default: false
+        startFrom:
+          $ref: '#/components/schemas/DateTime'
+        values:
+          $ref: '#/components/schemas/ValueTemplateList'
+    HabitList:
+      type: array
+      items:
+        - $ref: '#/components/schemas/Habit'
+      default: []
+    Habit:
+      type: object
+      required:
+        - id
+        - name
+        - tags
+        - numberOfRepetitions
+        - period
+        - values
+      properties:
+        id:
+          $ref: '#/components/schemas/HabitId'
+        name:
+          type: string
+        tags:
+          $ref: '#/components/schemas/TagWithOptionalIdList'
+        numberOfRepetitions:
+          type: integer
+        period:
+          $ref: '#/components/schemas/Period'
+        quote:
+          type: string
+        bad:
+          type: boolean
+          description: Is it bad habit
+          default: false
+        startFrom:
+          $ref: '#/components/schemas/DateTime'
+        values:
+          $ref: '#/components/schemas/ValueTemplateList'
+    ValueTemplateList:
+      type: array
+      items:
+        $ref: '#/components/schemas/ValueTemplate'
+      default: []
+    ValueTemplate:
+      type: object
+      required:
+        - type
+        - values
+      properties:
+        type:
+          $ref: '#/components/schemas/ValueType'
+        values:
+          $ref: '#/components/schemas/Values'
+        name:
+          type: string
+          description: Name of template value
+    Values:
+      type: array
+      items:
+        - type: string
+      default: []
+    ValueType:
+      enum:
+        - Mood
+        - EndDate
     ValueTemplateId:
       $ref: '#/components/schemas/Id'
     ValueId:
