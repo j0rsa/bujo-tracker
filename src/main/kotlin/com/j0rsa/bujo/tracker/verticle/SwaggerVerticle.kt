@@ -1,5 +1,8 @@
-package com.j0rsa.bujo.tracker
+package com.j0rsa.bujo.tracker.verticle
 
+import com.j0rsa.bujo.tracker.Config
+import com.j0rsa.bujo.tracker.Logging
+import com.j0rsa.bujo.tracker.logger
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.StaticHandler
 import io.vertx.kotlin.coroutines.CoroutineVerticle

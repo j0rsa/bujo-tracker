@@ -1,5 +1,7 @@
 package com.j0rsa.bujo.tracker
 
+import com.j0rsa.bujo.tracker.verticle.AppVerticle
+import com.j0rsa.bujo.tracker.verticle.SwaggerVerticle
 import io.vertx.core.Vertx
 import io.vertx.kotlin.core.deployVerticleAwait
 import org.slf4j.LoggerFactory

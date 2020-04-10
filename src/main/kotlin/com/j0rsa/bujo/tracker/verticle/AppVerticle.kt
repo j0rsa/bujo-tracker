@@ -1,6 +1,7 @@
-package com.j0rsa.bujo.tracker
+package com.j0rsa.bujo.tracker.verticle
 
 import arrow.core.Either
+import com.j0rsa.bujo.tracker.*
 import com.j0rsa.bujo.tracker.handler.*
 import io.vertx.core.Handler
 import io.vertx.core.Vertx
@@ -62,7 +63,11 @@ class AppVerticle : CoroutineVerticle() {
     }
 
     private infix fun String.to(fn: KFunction1<Vertx, suspend (RoutingContext) -> Either<TrackerError, Response<*>>>): Pair<String, Handler<RoutingContext>> {
-        return this to coroutineHandler{ fn(vertx)(it) }
+        return this to coroutineHandler {
+            fn(
+                vertx
+            )(it)
+        }
     }
     
     companion object : Logging {
@@ -73,7 +78,10 @@ class AppVerticle : CoroutineVerticle() {
                     try {
                         ctx.response()
                         when (val result = fn(ctx)) {
-                            is Either.Left -> errorResponse(result, ctx.response()).end()
+                            is Either.Left -> errorResponse(
+                                result,
+                                ctx.response()
+                            ).end()
                             is Either.Right -> result.b.response(ctx.response())
                         }
                     } catch (e: Exception) {
