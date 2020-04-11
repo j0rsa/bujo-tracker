@@ -10,7 +10,7 @@ on:
       - synchronize
 
 jobs:
-  build-push-deploy:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
