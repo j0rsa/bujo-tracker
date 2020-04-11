@@ -9,7 +9,7 @@ val arrowVersion = "0.10.4"
 val vertxVersion = "3.9.0"
 val junitJupiterEngineVersion = "5.4.2"
 
-val mainVerticleName = "com.j0rsa.bujo.tracker.Main"
+val mainVerticleName = "com.j0rsa.bujo.tracker.MainKt"
 val watchForChange = "src/**/*"
 val doOnChange = "./gradlew classes"
 
