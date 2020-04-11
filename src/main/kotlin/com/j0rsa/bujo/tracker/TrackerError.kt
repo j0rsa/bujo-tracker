@@ -7,3 +7,8 @@ sealed class TrackerError {
 
 typealias NotFound = TrackerError.NotFound
 typealias SystemError = TrackerError.SyStemError
+
+data class BadRequestError(
+	val error: String,
+	val details: Any?
+)

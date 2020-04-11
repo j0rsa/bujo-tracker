@@ -138,10 +138,7 @@ class Tag(id: EntityID<UUID>) : UUIDEntity(id) {
 	var name by Tags.name
 	var users by User via UserTags
 
-	fun toRow(): TagRow = TagRow(
-		name,
-		idValue()
-	)
+	fun toRow(): TagRow = TagRow(idValue(), name)
 
 	fun idValue() = TagId(id.value)
 }
@@ -326,6 +323,8 @@ inline class UserId(val value: UUID) {
 }
 
 inline class TagId(val value: UUID) {
+	constructor(s: String) : this(UUID.fromString(s))
+
 	companion object {
 		fun randomValue() = TagId(UUID.randomUUID())
 	}

@@ -79,6 +79,7 @@ data class ActionView(
 
 data class Value(
 	val type: ValueType,
+	// TODO: Why nullable, keyridan?
 	val value: String?,
 	val name: String?
 )

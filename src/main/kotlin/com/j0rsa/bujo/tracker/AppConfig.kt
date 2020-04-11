@@ -5,6 +5,7 @@ import io.github.config4k.extract
 
 data class AppConfig(
 	val db: DbConfig,
+	val swagger: SwaggerConf,
 	val port: Int
 )
 
@@ -14,6 +15,11 @@ data class DbConfig(
 	val user: String,
 	val password: String,
 	val maxPool: Int
+)
+
+data class SwaggerConf(
+	val enabled: Boolean,
+	val port: Int
 )
 
 object Config {
