@@ -6,7 +6,8 @@ import io.github.config4k.extract
 data class AppConfig(
 	val db: DbConfig,
 	val swagger: SwaggerConf,
-	val port: Int
+	val port: Int,
+	val specPath: String
 )
 
 data class DbConfig(

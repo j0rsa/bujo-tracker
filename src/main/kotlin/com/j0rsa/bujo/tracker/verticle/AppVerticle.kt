@@ -20,9 +20,7 @@ import kotlin.reflect.KFunction1
 class AppVerticle : CoroutineVerticle() {
     override suspend fun start() {
         TransactionManager.migrate()
-        val specUrl = this::class.java.getResource("/webroot/spec.yaml")
-            ?: throw IllegalStateException("Spec file not found!")
-        OpenAPI3RouterFactory.create(vertx, specUrl.file) { asyncResult ->
+        OpenAPI3RouterFactory.create(vertx, Config.app.specPath) { asyncResult ->
             if (asyncResult.succeeded()) {
                 val appPort = Config.app.port
                 asyncResult.result().apply {
