@@ -174,7 +174,7 @@ docker {
 	setDockerfile(baseDockerFile)
 	tag("DockerTag", "$baseDockerName:$projectTag")
 	buildArgs(mapOf("JAR_FILE" to shadowJar.archiveFileName.get()))
-	files(shadowJar.outputs)
+	files(shadowJar.outputs, "$buildDir/resources/main/webroot/spec.yaml")
 }
 compileKotlin.kotlinOptions {
 	freeCompilerArgs = listOf("-Xinline-classes")

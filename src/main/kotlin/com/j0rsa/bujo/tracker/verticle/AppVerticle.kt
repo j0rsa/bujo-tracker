@@ -14,12 +14,15 @@ import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 import kotlin.reflect.KFunction1
 
 class AppVerticle : CoroutineVerticle() {
     override suspend fun start() {
         TransactionManager.migrate()
-        OpenAPI3RouterFactory.create(vertx, "src/main/resources/webroot/spec.yaml") { asyncResult ->
+        val specUrl = this::class.java.getResource("/webroot/spec.yaml")
+            ?: throw IllegalStateException("Spec file not found!")
+        OpenAPI3RouterFactory.create(vertx, specUrl.file) { asyncResult ->
             if (asyncResult.succeeded()) {
                 val appPort = Config.app.port
                 asyncResult.result().apply {
