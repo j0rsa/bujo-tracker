@@ -1,0 +1,46 @@
+name: PRChecker
+
+on:
+  pull_request:
+    types:
+      # PR opened.
+      - opened
+      # New commits are pushed.
+      # Required to use as a status check.
+      - synchronize
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Prepare java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 8
+
+    - name: Build and test
+      uses: eskatos/gradle-command-action@v1
+      with:
+        arguments: test
+
+    - name: Prepare K8S
+      uses: Azure/k8s-set-context@v1
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Get shortsha
+      id: vars
+      run: |
+         echo ::set-output name=sha_short::$(git rev-parse --short=6 ${{ github.sha }})
+
+    - name: Try Deployment to K8S
+      run: |
+        kubectl apply --dry-run=server -f deployment/manifest.yaml
+
+    
