@@ -7,6 +7,7 @@ import com.j0rsa.bujo.tracker.handler.ValueTemplateRow
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.insert
 import org.joda.time.DateTime
+import java.util.*
 
 fun defaultUser(userEmail: String = "testEmail") = User.new {
 	name = "testUser"
@@ -23,8 +24,8 @@ fun defaultUserInfo(id: Long = 1L, firstName: String = "testTelegramUser") = Use
 	firstName = firstName
 )
 
-fun defaultTagRow(name: String = "testTag", id: TagId? = null) =
-	TagRow(name, id)
+fun defaultTagRow(name: String = "testTag", id: TagId = TagId.randomValue()) =
+	TagRow(id, name)
 
 fun defaultTag(tagUsers: List<User>, tagName: String = "testTag") = Tag.new {
 	name = tagName

@@ -31,16 +31,13 @@ jobs:
       uses: eskatos/gradle-command-action@v1
       with:
         arguments: dockerTagsPush
-      env:
-        POSTGRES_HOST: postgres
-        POSTGRES_PORT: 5432
 
     - name: Prepare K8S
       uses: Azure/k8s-set-context@v1
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-    - name: get shortsha
+    - name: Get shortsha
       id: vars
       run: |
          echo ::set-output name=sha_short::$(git rev-parse --short=6 ${{ github.sha }})
