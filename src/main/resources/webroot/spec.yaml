@@ -4,7 +4,6 @@ info:
   title: Bujo tracker
 servers:
   - url: http://localhost:8080
-  - url: http://10.0.0.18:8080
   - url: http://bujo-tracker.bujo-prod.svc.cluster.local
 
 paths:
