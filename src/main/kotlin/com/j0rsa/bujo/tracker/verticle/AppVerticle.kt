@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpServerResponse
 import io.vertx.ext.healthchecks.HealthCheckHandler
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory
+import io.vertx.ext.web.api.validation.ValidationException
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.GlobalScope
@@ -17,12 +18,14 @@ import kotlin.reflect.KFunction1
 
 class AppVerticle : CoroutineVerticle() {
     override suspend fun start() {
+        TransactionManager.migrate()
         OpenAPI3RouterFactory.create(vertx, "src/main/resources/webroot/spec.yaml") { asyncResult ->
             if (asyncResult.succeeded()) {
                 val appPort = Config.app.port
                 asyncResult.result().apply {
-                    mapOf<String, Handler<RoutingContext>>(
+                    val operationHandlers = mapOf<String, Handler<RoutingContext>>(
                         "getHealthInfo" to HealthCheckHandler.create(vertx),
+
                         "createHabit" to HabitHandler::create,
                         "getAllHabits" to HabitHandler::findAll,
                         "getHabit" to HabitHandler::findOne,
@@ -35,17 +38,30 @@ class AppVerticle : CoroutineVerticle() {
                         "getAction" to ActionHandler::findOne,
                         "updateAction" to ActionHandler::update,
                         "deleteAction" to ActionHandler::delete,
-//                        "addActionValue" to ActionHandler::addValue,
-//                        "createHabitAction" to ActionHandler::createWithHabit,
+                        "addActionValue" to ActionHandler::addValue,
+                        "createHabitAction" to ActionHandler::createWithHabit,
 
                         "createOrUpdateUser" to UserHandler::createOrUpdateUser,
                         "getTelegramUser" to UserHandler::findUser
-                    ).forEach { (k,v) -> addHandlerByOperationId(k,v) }
+                    )
+                    operationHandlers.forEach { (k, v) -> addHandlerByOperationId(k, v) }
                     addGlobalHandler(Cors.disable())
                     addGlobalHandler { event ->
                         logger.debug(event.request().toString())
                         event.next()
                     }
+
+                    operationHandlers.forEach { (t, _) ->
+                        addFailureHandlerByOperationId(t) { routingContext ->
+                            val failure: Throwable = routingContext.failure()
+                            if (failure is ValidationException) // Handle Validation Exception
+                                Response(
+                                    ResponseState.BAD_REQUEST,
+                                    BadRequestError(failure.type().name, failure.message)
+                                ).response(routingContext.response())
+                        }
+                    }
+
                     vertx.createHttpServer()
                         .requestHandler(router)
                         .exceptionHandler { logger.error(it.message) }
@@ -61,12 +77,10 @@ class AppVerticle : CoroutineVerticle() {
 
     private infix fun String.to(fn: KFunction1<Vertx, suspend (RoutingContext) -> Either<TrackerError, Response<*>>>): Pair<String, Handler<RoutingContext>> {
         return this to coroutineHandler {
-            fn(
-                vertx
-            )(it)
+            fn(vertx)(it)
         }
     }
-    
+
     companion object : Logging {
         private val logger = logger()
         private fun coroutineHandler(fn: suspend (RoutingContext) -> Either<TrackerError, Response<*>>): Handler<RoutingContext> =
@@ -82,6 +96,7 @@ class AppVerticle : CoroutineVerticle() {
                             is Either.Right -> result.b.response(ctx.response())
                         }
                     } catch (e: Exception) {
+                        logger.warn(e.message, e)
                         ctx.fail(e)
                     }
                 }

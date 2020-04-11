@@ -4,17 +4,10 @@ info:
   title: Bujo tracker
 servers:
   - url: http://localhost:8080
-paths:
-  /health:
-    get:
-      summary: Healt check
-      operationId: getHealthInfo
-      responses:
-        204:
-          description: OK
-        500:
-          description: Service is down
+  - url: http://10.0.0.18:8080
+  - url: http://bujo-tracker.bujo-prod.svc.cluster.local
 
+paths:
   /users:
     post:
       summary: Register or update user
@@ -33,6 +26,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserId'
+        400:
+          $ref: '#/components/responses/BadRequest'
         500:
           $ref: '#/components/responses/InternalError'
   /users/{telegram_id}:
@@ -93,6 +88,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Tag'
+        400:
+          $ref: '#/components/responses/BadRequest'
         500:
           $ref: '#/components/responses/InternalError'
 
@@ -116,6 +113,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Habit'
+        400:
+          $ref: '#/components/responses/BadRequest'
         500:
           $ref: '#/components/responses/InternalError'
     get:
@@ -129,7 +128,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HabitList'
+                $ref: '#/components/schemas/HabitInfoList'
         500:
           $ref: '#/components/responses/InternalError'
   /habits/{id}:
@@ -147,7 +146,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Habit'
+                $ref: '#/components/schemas/HabitInfo'
         404:
           $ref: '#/components/responses/NotFoundResponse'
         500:
@@ -169,6 +168,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Habit'
+        400:
+          $ref: '#/components/responses/BadRequest'
         404:
           $ref: '#/components/responses/NotFoundResponse'
         500:
@@ -206,6 +207,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ActionId'
+        400:
+          $ref: '#/components/responses/BadRequest'
         500:
           $ref: '#/components/responses/InternalError'
     get:
@@ -259,6 +262,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Action'
+        400:
+          $ref: '#/components/responses/BadRequest'
         404:
           $ref: '#/components/responses/NotFoundResponse'
         500:
@@ -279,6 +284,69 @@ paths:
     parameters:
       - $ref: '#/components/parameters/UserHeader'
       - $ref: '#/components/parameters/IdPath'
+    post:
+      summary: Add value to action
+      operationId: addActionValue
+      tags:
+        - actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Value'
+      responses:
+        201:
+          description: Value added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionId'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
+
+  /actions/habit/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UserHeader'
+      - $ref: '#/components/parameters/IdPath'
+    post:
+      summary: Create habit action
+      operationId: createHabitAction
+      tags:
+        - actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionIntent'
+      responses:
+        201:
+          description: Action created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionId'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFoundResponse'
+        500:
+          $ref: '#/components/responses/InternalError'
+
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealthInfo
+      tags:
+        - health
+      responses:
+        204:
+          description: OK
+        500:
+          description: Service is down
 
 components:
   parameters:
@@ -315,6 +383,17 @@ components:
           schema:
             type: object
             example: "Error: Internal Error"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: string
 
   schemas:
     UUID:
@@ -345,14 +424,18 @@ components:
         telegramId:
           description: Long id of Telegram user
           type: number
+          maxLength: 50
         firstName:
           description: First name
           type: string
+          maxLength: 50
         lastName:
           description: Last name
           type: string
+          maxLength: 50
         language:
           description: language code for translations
+          maxLength: 5
           type: string
     User:
       type: object
@@ -396,15 +479,12 @@ components:
         name:
           description: Tag name
           type: string
-    TagOrIntent:
-      type: object
-      oneOf:
-        - $ref: '#/components/schemas/Tag'
-        - $ref: '#/components/schemas/TagIntent'
     TagOrIntentList:
       type: array
       items:
-        $ref: '#/components/schemas/TagOrIntent'
+        oneOf:
+          - $ref: '#/components/schemas/Tag'
+          - $ref: '#/components/schemas/TagIntent'
       default: []
     Period:
       enum:
@@ -428,10 +508,12 @@ components:
           $ref: '#/components/schemas/TagOrIntentList'
         numberOfRepetitions:
           type: integer
+          example: 1
         period:
           $ref: '#/components/schemas/Period'
         quote:
           type: string
+          example: "Quality is not an act, it is a habit"
         bad:
           type: boolean
           description: Is it bad habit
@@ -440,10 +522,10 @@ components:
           $ref: '#/components/schemas/DateTime'
         values:
           $ref: '#/components/schemas/ValueTemplateList'
-    HabitList:
+    HabitInfoList:
       type: array
       items:
-        - $ref: '#/components/schemas/Habit'
+        $ref: '#/components/schemas/HabitsInfo'
       default: []
     Habit:
       type: object
@@ -475,6 +557,45 @@ components:
           $ref: '#/components/schemas/DateTime'
         values:
           $ref: '#/components/schemas/ValueTemplateList'
+    HabitsInfo:
+      type: object
+      required:
+        - habit
+        - currentStreak
+        - done
+      properties:
+        habit:
+          $ref: '#/components/schemas/Habit'
+        currentStreak:
+          type: integer
+          default: 0
+        done:
+          description: Finished for requested day
+          type: boolean
+    HabitInfo:
+      type: object
+      required:
+        - habit
+        - streakRow
+        - done
+      properties:
+        habit:
+          $ref: '#/components/schemas/Habit'
+        streakRow:
+          $ref: '#/components/schemas/StreakRow'
+        done:
+          description: Finished for requested day
+          type: boolean
+    StreakRow:
+      type: object
+      required:
+        - currentStreak
+        - maxStreak
+      properties:
+        currentStreak:
+          type: integer
+        maxStreak:
+          type: integer
     ValueTemplateList:
       type: array
       items:
@@ -496,7 +617,7 @@ components:
     ValueStrings:
       type: array
       items:
-        - type: string
+        type: string
       default: []
     ActionIntent:
       type: object
@@ -512,11 +633,12 @@ components:
         habitId:
           $ref: '#/components/schemas/HabitId'
         values:
-          $ref: '#/components/schemas/ValueList'
+          $ref: '#/components/schemas/ValueOrIntentList'
     ActionList:
       type: array
       items:
         $ref: '#/components/schemas/Action'
+      default: []
     Action:
       type: object
       required:
@@ -535,11 +657,32 @@ components:
           $ref: '#/components/schemas/HabitId'
         values:
           $ref: '#/components/schemas/ValueList'
+    ValueOrIntentList:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/Value'
+          - $ref: '#/components/schemas/ValueIntent'
+      default: []
     ValueList:
       type: array
       items:
         $ref: '#/components/schemas/Value'
     Value:
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/ValueId'
+        type:
+          $ref: '#/components/schemas/ValueType'
+        value:
+          type: string
+        name:
+          type: string
+    ValueIntent:
       type: object
       required:
         - type
@@ -555,8 +698,6 @@ components:
       enum:
         - Mood
         - EndDate
-    ValueTemplateId:
-      $ref: '#/components/schemas/Id'
     ValueId:
       $ref: '#/components/schemas/Id'
     ActionId:

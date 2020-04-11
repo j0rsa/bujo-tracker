@@ -6,9 +6,6 @@ import io.vertx.core.Vertx
 import io.vertx.kotlin.core.deployVerticleAwait
 import org.slf4j.LoggerFactory
 
-//            post("/actions/:id/value").coroutineHandler { ActionHandler.addValue(vertx)(it) }
-//            post("/actions/habit/:id").coroutineHandler { ActionHandler.createWithHabit(vertx)(it) }
-
 suspend fun main() {
     val logger = LoggerFactory.getLogger("Main")
     try {
