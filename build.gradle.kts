@@ -145,8 +145,14 @@ tasks {
 	}
 
 	// For Intellij IDEA
-	val copySwaggerToOut = register<Copy>("copySwaggerToOut") {
+	val copySwaggerToSrc = register<Copy>("copySwaggerToSrc") {
 		dependsOn(replaceSpecToken)
+		from(File(buildDir,"resources/main/webroot/"))
+		into(File(projectDir,"src/main/resources/webroot/"))
+	}
+	// For Intellij IDEA
+	val copySwaggerToOut = register<Copy>("copySwaggerToOut") {
+		dependsOn(copySwaggerToSrc)
 		from(File(buildDir,"resources/main/webroot/"))
 		into(File(projectDir,"out/production/resources/webroot/"))
 	}

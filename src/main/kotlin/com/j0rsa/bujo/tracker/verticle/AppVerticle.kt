@@ -14,7 +14,6 @@ import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
 import kotlin.reflect.KFunction1
 
 class AppVerticle : CoroutineVerticle() {
@@ -46,7 +45,7 @@ class AppVerticle : CoroutineVerticle() {
                         "getTelegramUser" to UserHandler::findUser
                     )
                     operationHandlers.forEach { (k, v) -> addHandlerByOperationId(k, v) }
-                    addGlobalHandler(Cors.disable())
+                    addGlobalHandler(Cors.enable())
                     addGlobalHandler { event ->
                         logger.debug(event.request().toString())
                         event.next()

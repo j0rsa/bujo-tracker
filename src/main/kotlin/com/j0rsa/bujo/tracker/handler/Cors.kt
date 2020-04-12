@@ -11,11 +11,11 @@ class Cors {
             "Access-Control-Allow-Methods",
             "Access-Control-Allow-Headers",
             "Access-Control-Allow-Credentials",
-            "origin",
+            "Origin",
             "Content-Type",
-            "accept",
-            "X-PINGARUNER",
-            "Authorization"
+            "Accept",
+            "Authorization",
+            "X-Auth-Id"
         )
         private val allowedMethods = setOf(
             HttpMethod.GET,
@@ -26,7 +26,7 @@ class Cors {
             HttpMethod.PUT
         )
 
-        fun disable(): CorsHandler =
+        fun enable(): CorsHandler =
             CorsHandler.create("*")
                 .allowedHeaders(allowedHeaders)
                 .allowedMethods(allowedMethods)
