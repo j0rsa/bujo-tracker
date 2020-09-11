@@ -76,7 +76,7 @@ internal class TagServiceTest : TransactionalTest {
 
 			val result = TagService.update(userId, tagToUpdate)
 			assertThat(result.isRight())
-			assertThat((result as Right<TagRow>).b.id!!).isEqualTo(existingTag.idValue())
+			assertThat((result as Right<TagRow>).b.id).isEqualTo(existingTag.idValue())
 
 			val tagAfterDeletion = TagRepository.findById(oldTag.idValue())
 			assertThat(tagAfterDeletion).isNull()
@@ -121,7 +121,7 @@ internal class TagServiceTest : TransactionalTest {
 			val tagAfterDeletion = TagRepository.findById(oldTag.idValue())
 			assertThat(tagAfterDeletion).isNull()
 
-			val newTag = TagRepository.findById(tagRowResult.id!!)
+			val newTag = TagRepository.findById(tagRowResult.id)
 			assertThat(newTag).isNotNull()
 
 			assertThat(habit.tags.toList()).containsOnly(newTag)

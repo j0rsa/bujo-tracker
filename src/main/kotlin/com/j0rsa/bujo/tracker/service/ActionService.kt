@@ -3,8 +3,7 @@ package com.j0rsa.bujo.tracker.service
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import arrow.core.extensions.fx
-import arrow.core.fix
+import arrow.core.computations.either
 import com.j0rsa.bujo.tracker.*
 import com.j0rsa.bujo.tracker.handler.StreakRow
 import com.j0rsa.bujo.tracker.model.*
@@ -89,11 +88,10 @@ object ActionService {
 		action.toRow()
 	}
 
-	fun deleteOne(actionId: ActionId, userId: UserId): Either<TrackerError, Unit> =
-		Either.fx<TrackerError, Unit> {
-			val (action) = findOne(actionId, userId)
-			action.delete()
-		}.fix()
+	fun deleteOne(actionId: ActionId, userId: UserId): Either<TrackerError, Unit> = either.eager {
+		val action = !findOne(actionId, userId)
+		action.delete()
+	}
 
 	fun findCurrentStreakForDay(id: HabitId, numberOfRepetitions: Int): BigDecimal =
 		ActionRepository.findCurrentStreakForDay(
@@ -105,7 +103,8 @@ object ActionService {
 		val result =
 			ActionRepository.findStreakForDay(id, numberOfRepetitions)
 		val currentStreak = result.firstOrNull()?.checkStreakOrNull(isEndDateCurrentDay) ?: BigDecimal.ZERO
-		return StreakRow(currentStreak,
+		return StreakRow(
+			currentStreak,
 			maxStreakOrZero(result)
 		)
 	}
@@ -120,7 +119,8 @@ object ActionService {
 		val result =
 			ActionRepository.findStreakForWeek(id, numberOfRepetitions)
 		val currentStreak = result.firstOrNull()?.checkStreakOrNull(isEndDateCurrentWeek) ?: BigDecimal.ZERO
-		return StreakRow(currentStreak,
+		return StreakRow(
+			currentStreak,
 			maxStreakOrZero(result)
 		)
 	}
@@ -138,7 +138,7 @@ object ActionService {
 	}
 
 	private fun maxStreakOrZero(result: List<StreakRecord>) =
-		result.map { it.streak }.max() ?: BigDecimal.ZERO
+		result.map { it.streak }.maxOrNull() ?: BigDecimal.ZERO
 
 	private fun StreakRecord.checkStreakOrNull(checker: (StreakRecord) -> Boolean) =
 		if (checker(this)) streak else null

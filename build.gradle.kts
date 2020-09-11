@@ -1,12 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.net.URI
 
-val kotlinVersion = "1.3.71"
-val config4kVersion = "0.4.1"
-val arrowVersion = "0.10.4"
+val kotlinVersion = "1.4.0"
+val config4kVersion = "0.4.2"
+val arrowVersion = "0.11.0"
 val vertxVersion = "3.9.0"
+val exposedVersion = "0.25.1"
 val junitJupiterEngineVersion = "5.4.2"
 
 val mainVerticleName = "com.j0rsa.bujo.tracker.Main"
@@ -16,16 +16,16 @@ val doOnChange = "./gradlew classes"
 plugins {
 	java
 	application
-	kotlin("jvm") version "1.3.71"
-	kotlin("kapt") version "1.3.71"
-	id("com.github.ben-manes.versions") version "0.26.0"
-	id("com.adarshr.test-logger") version "2.0.0"
-	id("com.gorylenko.gradle-git-properties") version "1.4.17"
-	id("com.avast.gradle.docker-compose") version "0.9.4"
-	id("com.palantir.docker") version "0.24.0"
-	id("com.github.johnrengelman.shadow") version "5.2.0"
-	id("org.flywaydb.flyway") version "6.3.2"
-	id("de.undercouch.download") version "4.0.4"
+	kotlin("jvm") version "1.4.0"
+	kotlin("kapt") version "1.4.0"
+	id("com.github.ben-manes.versions") version "0.31.0"
+	id("com.adarshr.test-logger") version "2.1.0"
+	id("com.gorylenko.gradle-git-properties") version "2.2.3"
+	id("com.avast.gradle.docker-compose") version "0.13.2"
+	id("com.palantir.docker") version "0.25.0"
+	id("com.github.johnrengelman.shadow") version "6.0.0"
+	id("org.flywaydb.flyway") version "6.5.5"
+	id("de.undercouch.download") version "4.1.1"
 }
 
 group = "com.j0rsa.bujo"
@@ -35,11 +35,10 @@ java.sourceCompatibility = JavaVersion.VERSION_1_8
 repositories {
 	mavenCentral()
 	jcenter()
-	maven { url = URI("http://dl.bintray.com/kotlin/exposed") }
 }
 
 dependencies {
-	implementation("org.flywaydb:flyway-core:6.3.2")
+	implementation("org.flywaydb:flyway-core:6.5.5")
 	implementation("org.postgresql:postgresql:42.2.9")
 	implementation("com.zaxxer:HikariCP:3.4.2")
 	implementation("io.arrow-kt:arrow-fx:$arrowVersion")
@@ -55,10 +54,10 @@ dependencies {
 	implementation("io.vertx:vertx-web-api-contract:$vertxVersion")
 	implementation("com.google.code.gson:gson:2.7")
 
-	implementation("org.jetbrains.exposed:exposed-core:0.22.1")
-	implementation("org.jetbrains.exposed:exposed-dao:0.22.1")
-	implementation("org.jetbrains.exposed:exposed-jdbc:0.22.1")
-	implementation("org.jetbrains.exposed:exposed-jodatime:0.22.1")
+	implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+	implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+	implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+	implementation("org.jetbrains.exposed:exposed-jodatime:$exposedVersion")
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 	implementation("org.slf4j:slf4j-api:1.7.25")
 	implementation("ch.qos.logback:logback-classic:1.2.3")
