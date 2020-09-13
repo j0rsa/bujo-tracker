@@ -7,7 +7,8 @@ data class AppConfig(
 	val db: DbConfig,
 	val swagger: SwaggerConf,
 	val port: Int,
-	val specPath: String
+	val specPath: String,
+	val redis: RedisConf,
 )
 
 data class DbConfig(
@@ -21,6 +22,10 @@ data class DbConfig(
 data class SwaggerConf(
 	val enabled: Boolean,
 	val port: Int
+)
+
+data class RedisConf(
+	val host: String,
 )
 
 object Config {

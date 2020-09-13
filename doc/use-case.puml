@@ -1,0 +1,98 @@
+@startuml
+
+actor User
+package Bujo {
+    rectangle Write {
+        component CommandAPI
+        component CommandHandler
+        component Tag
+        component Users
+        database EventBus
+        (Tags projection) as tp
+        (User Id projection) as idp
+        database TRedis as "Tags\nRedis SET"
+        database IDRedis as "User ID\nRedis"
+    }
+
+    rectangle Read {
+        database ARedis as "Action\nRedis\nuser:...:tag:..."
+        database HRedis as "Habit\nRedis"
+        database SRedis as "Stat\nRedis"
+        (AProjection) as "Action\nProjection"
+        (HProjection) as "Habit\nProjection"
+        (SProjection) as "Stat\nProjection"
+        component ReadAPI
+    }
+}
+
+User -> CommandAPI: POST data
+CommandAPI -right-> CommandHandler: converted req\n to command
+CommandHandler -right-> EventBus: publish validated\n command event
+CommandHandler -down-> Tag: if rename tag,\ncheck that tag was ever used
+CommandHandler -down-> Users
+
+EventBus --> AProjection
+AProjection --> ARedis
+EventBus --> HProjection
+HProjection --> HRedis
+EventBus --> SProjection
+SProjection --> SRedis
+EventBus --> idp
+idp --> IDRedis
+
+EventBus --> tp
+tp -> TRedis
+' key value
+' user [tag1, tag2]
+Tag ..> TRedis: find tag
+Users ..> IDRedis
+
+HRedis ..> ReadAPI
+ARedis ..> ReadAPI
+SRedis ..> ReadAPI
+
+User -> ReadAPI: GET data
+'Stat
+'----
+'tag date count
+'yoga today 1
+'gym today 1
+
+' command inc "user_yoga_2020-09-12"
+' command inc "gym_2020-09-12"
+' command inc "yoga_2020_CW38"
+' command inc "gym_2020_CW38"
+' command inc "yoga_2020-09"
+' command inc "gym_2020-09"
+' command inc "yoga_2020"
+' command inc "gym_2020"
+
+' ----
+' intermediate map
+' hmap user:<id>:tag:<name>:year:<>
+' keys: <date>, <month>, <CW>
+' Map {
+'   "CW1": 0,
+'   "CW2": 1,
+'   "01-01: 1,
+'   "01-02: 14,
+'   "01-03: 1,
+'   "1": 5
+'   "all": 155
+' }
+'
+' Summary
+' hmap user:<id>:tag:<id>
+' MAP {
+'   best: 256,
+'   current: 4
+' }
+' req Habit (time dimention, repetitions)
+' get current date/CW/month/year and fetch it's data from intermediate map
+' if repetitions pass -> ++ (fetched number >= repetitions)
+' fetch for previous period while repetitions pass
+
+' for weeks stat we use weekYear instead of year to write to the week counter of correct year,
+' So 2019-12-30 weekYear = 2020 and weekOfWeekyear = 1 so it is a first CW 2020
+
+@enduml

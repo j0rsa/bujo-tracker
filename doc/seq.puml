@@ -1,0 +1,35 @@
+@startuml
+
+' Habit = tag and repetitions per time period
+actor User
+
+User -> Action: create action with message \n"#gym #yoga awesome!! <time>"
+Action -> Habit: find habit #gym and habit #yoga
+alt 2 habits found
+    Habit --> Action: 2 habits
+else 1 habit found
+    Habit --> Action: 1 habit
+else no habits found
+end
+
+' Habit may or may not have multiple tags
+====
+User -> Stat: find stat by tag
+Stat -> Action: find actions by tag
+Action --> Stat: pass found actions
+Stat -> Stat: calculate stats
+Stat --> User: return multipage report
+====
+User -> Habit: create with message: "TODO"
+Habit --> User: request desired info (name, repetitions, time unit, tag, reminder)
+User -> Habit:Send this data
+====
+User -> Habit: get habits sorted by ???
+Habit -> Stat: get stats for habit
+Stat --> Habit
+Habit --> User: multipage result with some stats
+====
+User -> "??": rename tag
+User -> "??": delete action
+User -> "??": register
+@enduml
