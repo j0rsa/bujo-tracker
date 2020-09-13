@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import de.undercouch.gradle.tasks.download.Download
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val kotlinVersion = "1.4.0"
+val kotlinVersion = "1.4.10"
 val config4kVersion = "0.4.2"
 val arrowVersion = "0.11.0"
 val vertxVersion = "4.0.0-milestone5"
@@ -14,10 +14,8 @@ val watchForChange = "src/**/*"
 val doOnChange = "./gradlew classes"
 
 plugins {
-	java
-	application
-	kotlin("jvm") version "1.4.0"
-	kotlin("kapt") version "1.4.0"
+	kotlin("jvm") version "1.4.10"
+	kotlin("kapt") version "1.4.10"
 	id("com.github.ben-manes.versions") version "0.31.0"
 	id("com.adarshr.test-logger") version "2.1.0"
 	id("com.gorylenko.gradle-git-properties") version "2.2.3"
@@ -78,14 +76,6 @@ dependencies {
 	testImplementation("org.postgresql:postgresql:42.2.9")
 }
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_1_8
-}
-
-application {
-	mainClassName = "io.vertx.core.Launcher"
-}
-
 tasks {
 	named<ShadowJar>("shadowJar") {
 		mergeServiceFiles()
@@ -103,8 +93,8 @@ tasks {
 		dependsOn(shadowJar)
 	}
 
-	getByName<JavaExec>("run") {
-		args = listOf("run", mainVerticleName, "--redeploy=${watchForChange}", "--launcher-class=${application.mainClassName}", "--on-redeploy=${doOnChange}")
+	register<JavaExec>("run") {
+		args = listOf("run", mainVerticleName, "--redeploy=${watchForChange}", "--launcher-class=io.vertx.core.Launcher", "--on-redeploy=${doOnChange}")
 	}
 
 	docker {
