@@ -1,6 +1,6 @@
 package com.j0rsa.bujo.tracker.projections
 
-import com.j0rsa.bujo.tracker.ActionCreated
+import com.j0rsa.bujo.tracker.TagActionCreated
 import com.j0rsa.bujo.tracker.Event
 import com.j0rsa.bujo.tracker.HabitCreated
 import com.j0rsa.bujo.tracker.service.CacheService
@@ -23,7 +23,7 @@ class TagsProjection(val vertx: Vertx) {
                     is HabitCreated -> CacheService.sadd(listOf(this)) {
                         it.userId.value.toString() to it.tag.toSet()
                     }
-                    is ActionCreated -> CacheService.sadd(listOf(this)) {
+                    is TagActionCreated -> CacheService.sadd(listOf(this)) {
                         it.userId.value.toString() to setOf(it.tag)
                     }
                     else -> {}
