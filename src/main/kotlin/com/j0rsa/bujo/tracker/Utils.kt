@@ -1,11 +1,17 @@
 package com.j0rsa.bujo.tracker
 
+import com.j0rsa.bujo.tracker.handler.ACTIONS
+import com.j0rsa.bujo.tracker.handler.EventHandler
 import io.vertx.core.Handler
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
+import io.vertx.core.eventbus.Message
+import io.vertx.core.eventbus.MessageConsumer
+import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.awaitResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
 import org.joda.time.Days
 import org.joda.time.Weeks
@@ -40,3 +46,8 @@ suspend fun <T> execBlocking(vx: Vertx, fn: () -> T): T = withContext(Dispatcher
 }
 
 suspend fun <T> blockingTx(vx: Vertx, fn: () -> T) = execBlocking(vx) { TransactionManager.tx { fn() } }
+
+fun <T> CoroutineVerticle.consume(address: String, block: (T) -> Unit): MessageConsumer<T> =
+	vertx.eventBus().consumer(address) {
+		block(it.body())
+	}
