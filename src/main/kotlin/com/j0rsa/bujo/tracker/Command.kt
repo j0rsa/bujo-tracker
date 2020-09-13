@@ -10,7 +10,7 @@ sealed class Command
 
 data class CreateTagAction(
 	val userId: UserId,
-	val tags: List<String>,
+	val tags: Set<String>,
 	val date: LocalDateTime,
 	val message: String?,
 	val actionId: ActionId = ActionId.randomValue(),
@@ -19,7 +19,7 @@ data class CreateTagAction(
 data class CreateHabit(
 	val habitId: HabitId = HabitId.randomValue(),
 	val userId: UserId,
-	val tag: List<String>,
+	val tags: Set<String>,
 	val numberOfRepetitions: Int,
 	val period: Period,
 	val message: String?,

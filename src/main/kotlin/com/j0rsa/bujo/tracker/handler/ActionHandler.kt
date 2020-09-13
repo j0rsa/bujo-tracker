@@ -68,7 +68,7 @@ object ActionHandler {
 
 	private fun RoutingContext.toTagAction() = run {
 		val view = actionLens(this)
-		CreateTagAction(userIdLens(this), view.tags.map { it.name }, LocalDateTime.now(), view.description)
+		CreateTagAction(userIdLens(this), view.tags.map { it.name }.toSet(), LocalDateTime.now(), view.description)
 	}
 
 	private fun RoutingContext.toDtoWithTags() = BaseActionRow(actionLens(this), userIdLens(this))

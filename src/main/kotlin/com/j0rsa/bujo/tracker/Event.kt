@@ -11,7 +11,7 @@ sealed class Event
 data class TagActionCreated(
 	val actionId: ActionId,
 	val userId: UserId,
-	val tag: String,
+	val tags: Set<String>,
 	val date: LocalDateTime,
 	val message: String?,
 ) : Event()
@@ -19,7 +19,7 @@ data class TagActionCreated(
 data class HabitCreated(
 	val habitId: HabitId,
 	val userId: UserId,
-	val tag: List<String>,
+	val tags: Set<String>,
 	val numberOfRepetitions: Int,
 	val period: Period,
 	val message: String?,
