@@ -7,12 +7,11 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
 
 object CommandHandler : Logging {
-	private val logger = logger()
+	val logger = logger()
 
-	fun <E : Event> CommandSyntax.process(command: Command): Either<TrackerError, E> = execute(command)
+	inline fun <reified E : Event> CommandSyntax.process(command: Command): Either<TrackerError, E> = execute(command)
 
-	@Suppress("UNCHECKED_CAST")
-	private fun <E : Event> CommandSyntax.execute(command: Command): Either<TrackerError, E> = run {
+	inline fun <reified E : Event> CommandSyntax.execute(command: Command): Either<TrackerError, E> = run {
 		logger.debug("Processing $command")
 		val result = when (command) {
 			is CreateTagAction -> command.toEvent()
@@ -22,8 +21,8 @@ object CommandHandler : Logging {
 		result.right()
 	}
 
-	private fun CreateTagAction.toEvent(): TagActionCreated = TagActionCreated(actionId, userId, tags, date, message)
-	private fun CreateHabit.toEvent(): HabitCreated =
+	fun CreateTagAction.toEvent(): TagActionCreated = TagActionCreated(actionId, userId, tags, date, message)
+	fun CreateHabit.toEvent(): HabitCreated =
 		HabitCreated(habitId, userId, tags, numberOfRepetitions, period, message)
 }
 
