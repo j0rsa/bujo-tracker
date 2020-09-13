@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val kotlinVersion = "1.4.0"
 val config4kVersion = "0.4.2"
 val arrowVersion = "0.11.0"
-val vertxVersion = "3.9.0"
+val vertxVersion = "4.0.0-milestone5"
 val exposedVersion = "0.25.1"
 val junitJupiterEngineVersion = "5.4.2"
 
