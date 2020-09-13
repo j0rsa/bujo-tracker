@@ -34,6 +34,20 @@ open class RedisCacheService(
         LettuceFutures.awaitAll(list.size * oneRecordMaxAwait.inSeconds.toLong(), TimeUnit.SECONDS, *futures.toTypedArray())
     }
 
+    fun <T> sadd(list: List<T>, expiration: Duration? = null, keyValueTransformer: (T) -> Pair<String, Set<String>>) {
+        val futures: MutableList<RedisFuture<*>> = mutableListOf()
+        list.forEach { item ->
+            with(keyValueTransformer(item)) {
+                redisCommands.sadd(first, *second.toTypedArray())
+                expiration?.let {
+                    redisCommands.expire(first, it.inSeconds.toLong())
+                }
+            }
+        }
+        redisCommands.flushCommands()
+        LettuceFutures.awaitAll(list.size * oneRecordMaxAwait.inSeconds.toLong(), TimeUnit.SECONDS, *futures.toTypedArray())
+    }
+
     fun <T> get(key: String, transformer: (String) -> T): T? =
         try {
             val future = redisCommands.get(key)
