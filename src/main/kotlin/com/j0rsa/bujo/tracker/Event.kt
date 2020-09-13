@@ -8,7 +8,7 @@ import org.joda.time.LocalDateTime
 
 sealed class Event
 
-data class ActionCreated(
+data class TagActionCreated(
 	val actionId: ActionId,
 	val userId: UserId,
 	val tag: String,

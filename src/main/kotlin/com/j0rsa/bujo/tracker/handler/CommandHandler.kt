@@ -1,26 +1,25 @@
 package com.j0rsa.bujo.tracker.handler
 
-import arrow.core.Validated
+import arrow.core.Either
 import com.j0rsa.bujo.tracker.*
+import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
-import io.vertx.kotlin.coroutines.CoroutineVerticle
 
 object CommandHandler : Logging {
 	private val logger = logger()
 
-	fun SendEventSyntax.process(command: Command): Validated<TrackerError, Event> {
+	fun <E : Event> CommandSyntax.process(command: Command): Either<TrackerError, E> = execute(command)
 
-		val res = execute(command)
-		TODO()
-	}
-
-	private fun execute(command: Command): Validated<TrackerError, Event> {
+	private fun <E : Event> execute(command: Command): Either<TrackerError, E> = run {
 		logger.debug("Processing $command")
-		TODO()
+		when (command) {
+			is CreateTagAction -> TODO()
+			is CreateHabit -> TODO()
+		}
 	}
 }
 
-interface SendEventSyntax {
-	val verticle: CoroutineVerticle
-	fun Event.send(address: String): EventBus = verticle.vertx.eventBus().send(address, this)
+interface CommandSyntax {
+	val vertx: Vertx
+	fun Event.send(address: String): EventBus = vertx.eventBus().send(address, this)
 }

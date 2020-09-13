@@ -8,16 +8,16 @@ import org.joda.time.LocalDateTime
 
 sealed class Command
 
-data class CreateAction(
-	val actionId: ActionId,
+data class CreateTagAction(
 	val userId: UserId,
-	val tag: String,
+	val tags: List<String>,
 	val date: LocalDateTime,
 	val message: String?,
+	val actionId: ActionId = ActionId.randomValue(),
 ) : Command()
 
 data class CreateHabit(
-	val habitId: HabitId,
+	val habitId: HabitId = HabitId.randomValue(),
 	val userId: UserId,
 	val tag: List<String>,
 	val numberOfRepetitions: Int,
