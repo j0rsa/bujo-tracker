@@ -23,4 +23,4 @@ data class CreateHabit(
 	val numberOfRepetitions: Int,
 	val period: Period,
 	val message: String?,
-)
+) : Command()
