@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: bujo-tracker-config
-  namespace: bujo-prod
+  namespace: bujo
   labels:
     app: bujo_tracker
 data:
@@ -19,7 +19,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bujo-tracker
-  namespace: bujo-prod
+  namespace: bujo
   labels:
     app: bujo_tracker
 spec:
