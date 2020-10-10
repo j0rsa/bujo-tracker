@@ -45,7 +45,7 @@ jobs:
     - name: Deploy to K8S
       uses: Azure/k8s-deploy@v1
       with:
-        namespace: bujo-prod
+        namespace: bujo
         manifests: deployment/manifest.yaml
         images: |
           j0rsa/bujo-tracker:${{ steps.vars.outputs.sha_short }}
